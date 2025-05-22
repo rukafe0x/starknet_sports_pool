@@ -1,0 +1,1 @@
+{"version":1,"contracts":[{"id":"a1gc7ovngv9g0","package_name":"sports_pool","contract_name":"SportsPool","module_path":"sports_pool::sports_pool::SportsPool","artifacts":{"sierra":"sports_pool_SportsPool.contract_class.json","casm":"sports_pool_SportsPool.compiled_contract_class.json"}}]}
