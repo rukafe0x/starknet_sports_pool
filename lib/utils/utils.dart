@@ -1,7 +1,8 @@
 import 'package:starknet/starknet.dart';
 
 /// Converts a single Felt to an ASCII string
-String feltToAsciiString(Felt felt) {
+String feltToAsciiString(Felt? felt) {
+  if (felt == null) return '';
   BigInt value = felt.toBigInt();
   List<int> bytes = [];
 

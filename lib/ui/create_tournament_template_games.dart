@@ -35,6 +35,7 @@ class _CreateTournamentTemplateGamesState
               itemBuilder: (context, index) {
                 return GameListItem(
                   game: games[index],
+                  onUpdate: (game) => _updateGame(index, game),
                   onDelete: () => _removeGame(index),
                 );
               },
@@ -71,6 +72,7 @@ class _CreateTournamentTemplateGamesState
   void _addNewGame() {
     setState(() {
       games.add(Game(
+        id: Felt.fromInt(0),
         team1: '',
         team2: '',
         goals1: Felt.fromInt(0),
@@ -87,6 +89,12 @@ class _CreateTournamentTemplateGamesState
     });
   }
 
+  void _updateGame(int index, Game game) {
+    setState(() {
+      games[index] = game;
+    });
+  }
+
   void _saveTournament() {
     // TODO: Implement saving logic
     print('Saving tournament with ${games.length} games');
@@ -96,11 +104,16 @@ class _CreateTournamentTemplateGamesState
 }
 
 class GameListItem extends StatelessWidget {
-  Game game;
+  final Game game;
+  final Function(Game) onUpdate;
   final VoidCallback onDelete;
 
-  GameListItem({Key? key, required this.game, required this.onDelete})
-      : super(key: key);
+  GameListItem({
+    Key? key,
+    required this.game,
+    required this.onUpdate,
+    required this.onDelete,
+  }) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
@@ -117,7 +130,15 @@ class GameListItem extends StatelessWidget {
                   child: TextFormField(
                     initialValue: game.team1,
                     decoration: InputDecoration(labelText: 'Home Team'),
-                    onChanged: (value) => game.team1 = value,
+                    onChanged: (value) => onUpdate(Game(
+                      id: game.id,
+                      team1: value,
+                      team2: game.team2,
+                      goals1: game.goals1,
+                      goals2: game.goals2,
+                      datetime: game.datetime,
+                      played: game.played,
+                    )),
                   ),
                 ),
                 SizedBox(width: 16),
@@ -125,7 +146,15 @@ class GameListItem extends StatelessWidget {
                   child: TextFormField(
                     initialValue: game.team2,
                     decoration: InputDecoration(labelText: 'Away Team'),
-                    onChanged: (value) => game.team2 = value,
+                    onChanged: (value) => onUpdate(Game(
+                      id: game.id,
+                      team1: game.team1,
+                      team2: value,
+                      goals1: game.goals1,
+                      goals2: game.goals2,
+                      datetime: game.datetime,
+                      played: game.played,
+                    )),
                   ),
                 ),
               ],
@@ -173,13 +202,23 @@ class GameListItem extends StatelessWidget {
             DateTime.fromMillisecondsSinceEpoch(game.datetime.toInt())),
       );
       if (pickedTime != null) {
-        game.datetime = Felt.fromDouble(DateTime(
-          int.parse(pickedDate.year.toString()),
-          int.parse(pickedDate.month.toString()),
-          int.parse(pickedDate.day.toString()),
-          int.parse(pickedTime.hour.toString()),
-          int.parse(pickedTime.minute.toString()),
-        ).millisecondsSinceEpoch.toDouble());
+        final newDateTime = Felt.fromInt(DateTime(
+          pickedDate.year,
+          pickedDate.month,
+          pickedDate.day,
+          pickedTime.hour,
+          pickedTime.minute,
+        ).millisecondsSinceEpoch);
+
+        onUpdate(Game(
+          id: game.id,
+          team1: game.team1,
+          team2: game.team2,
+          goals1: game.goals1,
+          goals2: game.goals2,
+          datetime: newDateTime,
+          played: game.played,
+        ));
       }
     }
   }

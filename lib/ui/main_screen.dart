@@ -2,6 +2,10 @@ import 'package:flutter/material.dart';
 import 'package:starknet/starknet.dart';
 import 'create_tournament_template.dart';
 import 'create_tournament_instance.dart';
+import 'play_tournament_screen.dart';
+import 'edit_tournament_screen.dart';
+import 'leaderboard_screen.dart';
+import 'my_tournaments_screen.dart';
 
 class MainScreen extends StatefulWidget {
   final String accountAddress;
@@ -28,9 +32,38 @@ class _MainScreenState extends State<MainScreen> {
           children: [
             ElevatedButton(
               onPressed: () {
-                // Add your logic for Play a tournament
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => MyTournamentsScreen(
+                      userAddress: widget.accountAddress,
+                    ),
+                  ),
+                );
               },
-              child: Text('Play a tournament'),
+              child: const Text('Check my tournaments'),
+            ),
+            ElevatedButton(
+              onPressed: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => const LeaderboardScreen(),
+                  ),
+                );
+              },
+              child: const Text('View Leaderboard'),
+            ),
+            ElevatedButton(
+              onPressed: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => const PlayTournamentScreen(),
+                  ),
+                );
+              },
+              child: const Text('Play a tournament'),
             ),
             ElevatedButton(
               onPressed: () {
@@ -68,7 +101,12 @@ class _MainScreenState extends State<MainScreen> {
             if (widget.owner.toHexString() == widget.accountAddress)
               ElevatedButton(
                 onPressed: () {
-                  // Add your logic for edit tournament template
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) => const EditTournamentScreen(),
+                    ),
+                  );
                 },
                 child: Text('Edit tournament template'),
               ),

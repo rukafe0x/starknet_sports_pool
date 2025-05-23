@@ -5,8 +5,10 @@ import 'package:convert/convert.dart';
 import 'package:starknet/starknet.dart';
 import 'services/services.dart';
 import 'ui/main_screen.dart';
+import 'package:flutter_dotenv/flutter_dotenv.dart';
 
-void main() {
+void main() async {
+  await dotenv.load(fileName: ".env");
   runApp(const MyApp());
 }
 
@@ -38,12 +40,10 @@ class SeedPhraseScreen extends StatefulWidget {
 }
 
 class _SeedPhraseScreenState extends State<SeedPhraseScreen> {
-  final TextEditingController _seedController = TextEditingController(
-      text:
-          'long blur chuckle trash tower pistol change flight sample knock avocado entire');
-  final TextEditingController _addressController = TextEditingController(
-      text:
-          '0x073a4176e97c29044dd1717727aa752ec56af04113e0c9277b798ee7a317163b');
+  final TextEditingController _seedController =
+      TextEditingController(text: dotenv.env['SEED_PHRASE'] ?? '');
+  final TextEditingController _addressController =
+      TextEditingController(text: dotenv.env['SECRET_ACCOUNT_ADDRESS'] ?? '');
   final _formKey = GlobalKey<FormState>();
 
   Felt _owner = Felt.fromHexString('0x0');
@@ -89,8 +89,7 @@ class _SeedPhraseScreenState extends State<SeedPhraseScreen> {
                   .toRadixString(16);
           privateKey = privateKey.padLeft(64, '0');
           privateKey = '0x' + privateKey;
-          privateKey =
-              '0x73a4176e97c29044dd1717727aa752ec56af04113e0c9277b798ee7a317163b';
+          privateKey = dotenv.env['SECRET_ACCOUNT_ADDRESS'] ?? '';
           print(privateKey);
           // Here you would typically store or use the private key securely
           // For demonstration, we're just showing it in a SnackBar
@@ -99,11 +98,9 @@ class _SeedPhraseScreenState extends State<SeedPhraseScreen> {
           );
 
           final signeraccount = getAccount(
-            accountAddress: Felt.fromHexString(accountAddress),
-            privateKey: Felt.fromHexString(privateKey),
-            nodeUri: Uri.parse(
-                'https://starknet-sepolia.g.alchemy.com/starknet/version/rpc/v0_7/DSuGip93IA2Lr6nNhaCN4oS0Je2n1xCF'),
-          );
+              accountAddress: Felt.fromHexString(accountAddress),
+              privateKey: Felt.fromHexString(privateKey),
+              nodeUri: Uri.parse(dotenv.env['STARKNET_NODE_URI'] ?? ''));
 
           // display signeraccount address as hex in snackbar
           ScaffoldMessenger.of(context).showSnackBar(
