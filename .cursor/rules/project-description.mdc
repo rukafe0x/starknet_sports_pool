@@ -1,8 +1,0 @@
----
-description: 
-globs: 
-alwaysApply: true
----
-Project is related with a sports pool builded for starknet blockchain. Admin users could create tournament templates with games. Regular users could create a new tournament instance (based in tournament template) or register into an existing tournament instance and predict tournament games results. Only the creator of a tournament instance could edit game results and update the leaderboard of that tournament instance.
-
-Tournament templates/games, tournamnent instances and user predictions are stored in starknet blockchain.
