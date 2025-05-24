@@ -19,6 +19,7 @@ class _PlayTournamentScreenState extends State<PlayTournamentScreen> {
   bool _isLoading = true;
   String? _error;
   int? _selectedInstanceId;
+  Map<String, dynamic>? _selectedInstance;
 
   @override
   void initState() {
@@ -46,18 +47,25 @@ class _PlayTournamentScreenState extends State<PlayTournamentScreen> {
     }
   }
 
-  Future<void> _loadGames(Felt tournamentTemplateId) async {
+  Future<void> _loadGames(
+      Felt selectedInstanceId, Felt tournamentTemplateId) async {
     try {
       setState(() {
         _isLoading = true;
         _error = null;
-        _selectedInstanceId = tournamentTemplateId.toInt();
       });
 
       final games = await getTournamentTemplateGames(tournamentTemplateId);
+
+      // Find the selected instance from _tournamentInstances
+      final selectedInstance = _tournamentInstances.firstWhere(
+        (instance) => instance['instance_id'] == selectedInstanceId,
+      );
+
       setState(() {
         _games = games;
         _predictions = {};
+        _selectedInstance = selectedInstance;
         _isLoading = false;
       });
     } catch (e) {
@@ -98,44 +106,81 @@ class _PlayTournamentScreenState extends State<PlayTournamentScreen> {
   }
 
   Future<void> _savePredictions() async {
-    if (_selectedInstanceId == null) return;
+    if (!_areAllGamesPredicted()) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Please predict all games before saving')),
+      );
+      return;
+    }
+
+    // Show confirmation dialog for entry fee approval
+    final bool? confirmApproval = await showDialog<bool>(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: const Text('Approve Entry Fee'),
+          content: Text(
+            'You need to approve a transfer of ${uint256ToStrkString(_selectedInstance!['entry_fee'])} STRK tokens as entry fee for this tournament. Do you want to proceed?',
+          ),
+          actions: <Widget>[
+            TextButton(
+              child: const Text('Cancel'),
+              onPressed: () => Navigator.of(context).pop(false),
+            ),
+            TextButton(
+              child: const Text('Approve'),
+              onPressed: () => Navigator.of(context).pop(true),
+            ),
+          ],
+        );
+      },
+    );
+
+    // If user cancels, return early
+    if (confirmApproval != true) {
+      return;
+    }
+
+    setState(() => _isLoading = true);
 
     try {
-      setState(() {
-        _isLoading = true;
-        _error = null;
-      });
-
-      // Convert predictions to the format expected by the contract
-      List<Map<String, dynamic>> allPredictions = [];
-      _predictions.forEach((gameId, predictions) {
-        for (var prediction in predictions) {
-          allPredictions.add({
-            'game_id': gameId,
-            'prediction': prediction,
-          });
-        }
-      });
-
-      final txHash = await saveUserInstancePrediction(
-          _selectedInstanceId!, allPredictions);
-
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Predictions saved! Transaction: $txHash')),
+      // First, approve the entry fee
+      await approveEntryFee(
+        _selectedInstance!['instance_id'].toInt(),
+        _selectedInstance!['entry_fee'],
       );
 
-      // Clear predictions after successful save
-      setState(() {
-        _predictions = {};
-      });
+      // Then save the predictions
+      final predictions = _games.map((game) {
+        final gameId = game.id.toInt();
+        final gamePredictions = _predictions[gameId] ?? [];
+        return {
+          'prediction':
+              gamePredictions.isNotEmpty ? gamePredictions.first : null,
+        };
+      }).toList();
+
+      final txHash = await saveUserInstancePrediction(
+        _selectedInstance!['instance_id'].toInt(),
+        predictions,
+      );
+
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Predictions saved! TX: $txHash')),
+        );
+        Navigator.pop(context);
+      }
     } catch (e) {
-      setState(() {
-        _error = e.toString();
-      });
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Error saving predictions: $e')),
+        );
+      }
     } finally {
-      setState(() {
-        _isLoading = false;
-      });
+      if (mounted) {
+        setState(() => _isLoading = false);
+      }
     }
   }
 
@@ -148,120 +193,147 @@ class _PlayTournamentScreenState extends State<PlayTournamentScreen> {
       ),
       body: _isLoading
           ? const Center(child: CircularProgressIndicator())
-          : _error != null
-              ? Center(child: Text('Error: $_error'))
-              : _selectedInstanceId == null
-                  ? _buildTournamentList()
-                  : _buildGamesList(),
-    );
-  }
-
-  Widget _buildTournamentList() {
-    return ListView.builder(
-      padding: const EdgeInsets.all(16),
-      itemCount: _tournamentInstances.length,
-      itemBuilder: (context, index) {
-        final instance = _tournamentInstances[index];
-        return Card(
-          margin: const EdgeInsets.only(bottom: 16),
-          child: ListTile(
-            title: Text(instance['name']),
-            subtitle: Text(instance['description']),
-            trailing: const Icon(Icons.arrow_forward_ios),
-            onTap: () => _loadGames(instance['tournament_template_id']),
-          ),
-        );
-      },
-    );
-  }
-
-  Widget _buildGamesList() {
-    return Column(
-      children: [
-        Expanded(
-          child: ListView.builder(
-            padding: const EdgeInsets.all(16),
-            itemCount: _games.length,
-            itemBuilder: (context, index) {
-              final game = _games[index];
-              final gamePredictions = _predictions[game.id.toInt()] ?? [];
-              return Card(
-                margin: const EdgeInsets.only(bottom: 16),
-                child: Padding(
-                  padding: const EdgeInsets.all(16),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        '${game.team1} vs ${game.team2}',
-                        style: const TextStyle(
-                          fontSize: 18,
-                          fontWeight: FontWeight.bold,
-                        ),
-                      ),
-                      const SizedBox(height: 8),
-                      Text(
-                        gamePredictions.isEmpty
-                            ? 'No prediction selected'
-                            : 'Selected: ${gamePredictions.map((p) => p == 1 ? "Home Win" : p == 2 ? "Away Win" : "Draw").join(", ")}',
-                        style: TextStyle(
-                          color: gamePredictions.isEmpty
-                              ? Colors.red
-                              : Colors.grey[600],
-                          fontSize: 12,
-                        ),
-                      ),
-                      const SizedBox(height: 16),
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+          : Padding(
+              padding: const EdgeInsets.all(16.0),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  Card(
+                    child: Padding(
+                      padding: const EdgeInsets.all(16.0),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          _buildPredictionButton(
-                            game.id.toInt(),
-                            1,
-                            'Home Win',
-                            Icons.home,
-                            gamePredictions.contains(1),
+                          const Text(
+                            'Select Tournament',
+                            style: TextStyle(
+                              fontSize: 18,
+                              fontWeight: FontWeight.bold,
+                            ),
                           ),
-                          _buildPredictionButton(
-                            game.id.toInt(),
-                            0,
-                            'Draw',
-                            Icons.sports_soccer,
-                            gamePredictions.contains(0),
+                          const SizedBox(height: 16),
+                          DropdownButtonFormField<Map<String, dynamic>>(
+                            value: _selectedInstance,
+                            items: _tournamentInstances.map((instance) {
+                              return DropdownMenuItem(
+                                value: instance,
+                                child: Text(instance['name'].toString()),
+                              );
+                            }).toList(),
+                            onChanged: (instance) {
+                              if (instance != null) {
+                                _loadGames(instance['instance_id'],
+                                    instance['tournament_template_id']);
+                              }
+                            },
+                            decoration: const InputDecoration(
+                              border: OutlineInputBorder(),
+                              labelText: 'Tournament',
+                            ),
                           ),
-                          _buildPredictionButton(
-                            game.id.toInt(),
-                            2,
-                            'Away Win',
-                            Icons.airplanemode_active,
-                            gamePredictions.contains(2),
-                          ),
+                          if (_selectedInstance != null) ...[
+                            const SizedBox(height: 16),
+                            Text(
+                              'Entry Fee: ${uint256ToStrkString(_selectedInstance!['entry_fee'])} STRK',
+                              style: const TextStyle(
+                                fontSize: 16,
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
+                          ],
                         ],
                       ),
-                    ],
+                    ),
                   ),
-                ),
-              );
-            },
-          ),
-        ),
-        Padding(
-          padding: const EdgeInsets.all(16),
-          child: ElevatedButton(
-            onPressed: _areAllGamesPredicted() ? _savePredictions : null,
-            style: ElevatedButton.styleFrom(
-              backgroundColor: const Color(0xFF6750A4),
-              foregroundColor: Colors.white,
-              padding: const EdgeInsets.symmetric(vertical: 16),
-              minimumSize: const Size(double.infinity, 0),
+                  Expanded(
+                    child: ListView.builder(
+                      padding: const EdgeInsets.all(16),
+                      itemCount: _games.length,
+                      itemBuilder: (context, index) {
+                        final game = _games[index];
+                        final gamePredictions =
+                            _predictions[game.id.toInt()] ?? [];
+                        return Card(
+                          margin: const EdgeInsets.only(bottom: 16),
+                          child: Padding(
+                            padding: const EdgeInsets.all(16),
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(
+                                  '${game.team1} vs ${game.team2}',
+                                  style: const TextStyle(
+                                    fontSize: 18,
+                                    fontWeight: FontWeight.bold,
+                                  ),
+                                ),
+                                const SizedBox(height: 8),
+                                Text(
+                                  gamePredictions.isEmpty
+                                      ? 'No prediction selected'
+                                      : 'Selected: ${gamePredictions.map((p) => p == 1 ? "Home Win" : p == 2 ? "Away Win" : "Draw").join(", ")}',
+                                  style: TextStyle(
+                                    color: gamePredictions.isEmpty
+                                        ? Colors.red
+                                        : Colors.grey[600],
+                                    fontSize: 12,
+                                  ),
+                                ),
+                                const SizedBox(height: 16),
+                                Row(
+                                  mainAxisAlignment:
+                                      MainAxisAlignment.spaceEvenly,
+                                  children: [
+                                    _buildPredictionButton(
+                                      game.id.toInt(),
+                                      1,
+                                      'Home Win',
+                                      Icons.home,
+                                      gamePredictions.contains(1),
+                                    ),
+                                    _buildPredictionButton(
+                                      game.id.toInt(),
+                                      0,
+                                      'Draw',
+                                      Icons.sports_soccer,
+                                      gamePredictions.contains(0),
+                                    ),
+                                    _buildPredictionButton(
+                                      game.id.toInt(),
+                                      2,
+                                      'Away Win',
+                                      Icons.airplanemode_active,
+                                      gamePredictions.contains(2),
+                                    ),
+                                  ],
+                                ),
+                              ],
+                            ),
+                          ),
+                        );
+                      },
+                    ),
+                  ),
+                  Padding(
+                    padding: const EdgeInsets.all(16),
+                    child: ElevatedButton(
+                      onPressed:
+                          _areAllGamesPredicted() ? _savePredictions : null,
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: const Color(0xFF6750A4),
+                        foregroundColor: Colors.white,
+                        padding: const EdgeInsets.symmetric(vertical: 16),
+                        minimumSize: const Size(double.infinity, 0),
+                      ),
+                      child: Text(
+                        'Save Predictions (${_predictions.length}/${_games.length} games predicted)',
+                        style: const TextStyle(fontSize: 16),
+                      ),
+                    ),
+                  ),
+                ],
+              ),
             ),
-            child: Text(
-              'Save Predictions (${_predictions.length}/${_games.length} games predicted)',
-              style: const TextStyle(fontSize: 16),
-            ),
-          ),
-        ),
-      ],
     );
   }
 

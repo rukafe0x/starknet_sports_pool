@@ -95,11 +95,24 @@ class _CreateTournamentTemplateGamesState
     });
   }
 
-  void _saveTournament() {
-    // TODO: Implement saving logic
-    print('Saving tournament with ${games.length} games');
-    // You can add logic here to save the games to your backend or state management solution
-    saveTournamentTemplateGames(widget.tournamentId, games);
+  Future<void> _saveTournament() async {
+    try {
+      await saveTournamentTemplateGames(widget.tournamentId, games);
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Tournament games saved successfully!')),
+        );
+        // Pop twice to go back two screens
+        Navigator.of(context).pop();
+        Navigator.of(context).pop();
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Error saving tournament games: $e')),
+        );
+      }
+    }
   }
 }
 

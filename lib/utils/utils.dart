@@ -76,3 +76,46 @@ double parseHexToDouble(dynamic hexValue) {
     return 0.0;
   }
 }
+
+String uint256ToStrkString(Uint256 amount) {
+  // Convert the Uint256 to BigInt
+  final bigAmount = (BigInt.from(amount.high.toInt()) << 128) |
+      BigInt.from(amount.low.toInt());
+
+  // Convert to string with 18 decimals
+  final strAmount = bigAmount.toString();
+
+  if (strAmount.length <= 18) {
+    // If the number is smaller than 18 decimals, pad with zeros
+    return '0.${strAmount.padLeft(18, '0')}';
+  } else {
+    // Split the number at the decimal point
+    final decimalPart = strAmount.substring(strAmount.length - 18);
+    final wholePart = strAmount.substring(0, strAmount.length - 18);
+
+    // If decimal part is all zeros, just return the whole part
+    if (BigInt.parse(decimalPart) == BigInt.zero) {
+      return wholePart;
+    }
+
+    return '$wholePart.$decimalPart';
+  }
+}
+
+Uint256 strkToUint256(String strkAmount) {
+  // Split the input into whole and decimal parts
+  final parts = strkAmount.split('.');
+  final wholePart = parts[0];
+  final decimalPart = parts.length > 1 ? parts[1] : '';
+
+  // Convert to BigInt with 18 decimals
+  final decimalPlaces = 18;
+  final paddedDecimal = decimalPart.padRight(decimalPlaces, '0');
+  final bigAmount = BigInt.parse(wholePart + paddedDecimal);
+
+  // Convert to Uint256 (low and high)
+  final low = Felt(bigAmount & ((BigInt.one << 128) - BigInt.one));
+  final high = Felt(bigAmount >> 128);
+
+  return Uint256(low: low, high: high);
+}

@@ -11,6 +11,10 @@ mod SportsPool {
         StoragePointerReadAccess, StoragePointerWriteAccess, StoragePathEntry, Map
     };
     use starknet::{ContractAddress, get_caller_address};
+    use starknet::eth_address::EthAddress;
+    use openzeppelin::token::erc20::interface::{ERC20ABIDispatcher, ERC20ABIDispatcherTrait};
+    use starknet::contract_address::contract_address_const;
+    use starknet::get_contract_address;
 
     #[storage]
     struct Storage {
@@ -130,6 +134,19 @@ mod SportsPool {
                 node.entry(index).write(games[i].clone());
                 self._tournament_template_games_count.entry(tournament_template_id).write(self._tournament_template_games_count.entry(tournament_template_id).read() + 1);
             };
+            //update games_count for the tournament template
+            let curr_tournament_template = self._tournament_template.entry(tournament_template_id).read();
+            let updated_tournament_template = tournament_template {
+                name: curr_tournament_template.name.clone(),
+                description: curr_tournament_template.description.clone(),
+                image_url: curr_tournament_template.image_url.clone(),
+                entry_fee: curr_tournament_template.entry_fee.clone(),
+                prize_first_place: curr_tournament_template.prize_first_place.clone(),
+                prize_second_place: curr_tournament_template.prize_second_place.clone(),
+                prize_third_place: curr_tournament_template.prize_third_place.clone(),
+                games_count: games.len().try_into().unwrap(),
+            };
+            self._tournament_template.entry(tournament_template_id).write(updated_tournament_template);
         }
 
         #[external(v0)]
@@ -151,8 +168,21 @@ mod SportsPool {
         }
 
         #[external(v0)]
-        fn save_tournament_instance(ref self: ContractState, tournament_instance_id: u8, tournament_instance: tournament_instance) {
-            self._tournament_instance.entry(tournament_instance_id).write(tournament_instance);
+        fn save_tournament_instance(ref self: ContractState, tournament_instance: tournament_instance) {
+            // get instance_id from counter and update the instance_id in the tournament_instance structure received
+            let instance_id = self._tournament_instance_count.read();
+            let mut updated_tournament_instance = tournament_instance {
+                instance_id: instance_id,
+                tournament_template_id: tournament_instance.tournament_template_id.clone(),
+                name: tournament_instance.name.clone(),
+                description: tournament_instance.description.clone(),
+                image_url: tournament_instance.image_url.clone(),
+                entry_fee: tournament_instance.entry_fee.clone(),
+                prize_first_place: tournament_instance.prize_first_place.clone(),
+                prize_second_place: tournament_instance.prize_second_place.clone(),
+                prize_third_place: tournament_instance.prize_third_place.clone(),
+            };
+            self._tournament_instance.entry(instance_id).write(updated_tournament_instance);
             self._tournament_instance_count.write(self._tournament_instance_count.read() + 1);
         }
 
@@ -186,18 +216,31 @@ mod SportsPool {
         #[external(v0)]
         fn save_user_instance_prediction(ref self: ContractState, tournament_instance_id: u8, predictions: Array<u8>) {
             let user_address = get_caller_address();
+            
+            // Get the entry fee from the tournament instance
+            let entry_fee = self._tournament_instance.entry(tournament_instance_id).entry_fee.read();
+            
+            // Transfer the entry fee from the user to the contract
+            let strk_token_dispatcher = ERC20ABIDispatcher {
+                contract_address: contract_address_const::<
+                    0x04718f5a0fc34cc1af16a1cdee98ffb20c31f5cd61d6ab07201858f4287c938d,
+                >() // STRK Contract Address
+            };
+            
+            strk_token_dispatcher.transferFrom(user_address, get_contract_address(), entry_fee);
+
+            // Rest of the existing function code
             for i in 0..predictions.len() {
                 let index :u8 = i.try_into().unwrap();
                 let mut user_instances_predictions = self._user_instances_predictions.entry(user_address).entry(tournament_instance_id);
                 user_instances_predictions.entry(index).write(*predictions[i]);
             };
             self._user_instances_count.entry(user_address).write(self._user_instances_count.entry(user_address).read() + 1);
-            // for each prediction from a user we must addit to a user list for that instance
+            
             let mut user_instance_index = self._user_instances_user_list_count.entry(tournament_instance_id).read();
             self._user_instances_user_list.entry(tournament_instance_id).entry(user_instance_index).write(user_address);
             self._user_instances_user_list_count.entry(tournament_instance_id).write(user_instance_index + 1);
 
-            // we must add the prediction to the played tournament instance list
             let user_instance_index = self._user_instances_predictions_list_count.entry(user_address).read();
             let mut user_instances_predictions_list = self._user_instances_predictions_list.entry(user_address);
             user_instances_predictions_list.entry(user_instance_index).write(tournament_instance_id);

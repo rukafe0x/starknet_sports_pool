@@ -4,6 +4,7 @@ import 'package:intl/intl.dart';
 import '../services/services.dart';
 import '../models/game.dart';
 import '../models/tournament_template.dart';
+import '../utils/utils.dart';
 
 class CreateTournamentInstance extends StatefulWidget {
   final String accountAddress;
@@ -85,13 +86,11 @@ class _CreateTournamentInstanceState extends State<CreateTournamentInstance> {
     if (_formKey.currentState!.validate() && _selectedTemplate != null) {
       try {
         final txHash = await createTournamentInstance(
-          _tournamentTemplates.length - 1,
           _selectedTemplate!.id.toInt(),
           _name,
           _description,
           _selectedTemplate!.imageUrl,
-          Uint256.fromBigInt(_entryFee.toBigInt() *
-              BigInt.from(1e18)), // Convert to Wei equivalent
+          _entryFee,
           _prizeFirstPlace,
           _prizeSecondPlace,
           _prizeThirdPlace,
@@ -151,6 +150,9 @@ class _CreateTournamentInstanceState extends State<CreateTournamentInstance> {
                           _name = template.name;
                           _description = template.description;
                           _entryFee = template.entryFee;
+                          _prizeFirstPlace = template.prizeFirstPlace;
+                          _prizeSecondPlace = template.prizeSecondPlace;
+                          _prizeThirdPlace = template.prizeThirdPlace;
 
                           // Load games for this template
                           _loadGames(template.id);
@@ -222,17 +224,108 @@ class _CreateTournamentInstanceState extends State<CreateTournamentInstance> {
                             style: const TextStyle(fontWeight: FontWeight.bold),
                           ),
                           const SizedBox(height: 8),
-                          Text(
-                              'Description: ${_selectedTemplate!.description}'),
+                          TextFormField(
+                            initialValue: _name,
+                            decoration: const InputDecoration(
+                              labelText: 'Tournament Name',
+                              border: OutlineInputBorder(),
+                            ),
+                            onChanged: (value) {
+                              setState(() {
+                                _name = value;
+                              });
+                            },
+                          ),
                           const SizedBox(height: 8),
-                          Text(
-                              'Default Entry Fee: ${_selectedTemplate!.entryFee} ETH'),
+                          TextFormField(
+                            initialValue: _description,
+                            decoration: const InputDecoration(
+                              labelText: 'Description',
+                              border: OutlineInputBorder(),
+                            ),
+                            onChanged: (value) {
+                              setState(() {
+                                _description = value;
+                              });
+                            },
+                          ),
+                          const SizedBox(height: 8),
+                          TextFormField(
+                            initialValue: uint256ToStrkString(_entryFee),
+                            decoration: const InputDecoration(
+                              labelText: 'Entry Fee (STRK)',
+                              border: OutlineInputBorder(),
+                            ),
+                            keyboardType: TextInputType.number,
+                            onChanged: (value) {
+                              try {
+                                final entryFee = strkToUint256(value);
+                                setState(() {
+                                  _entryFee = entryFee;
+                                });
+                              } catch (e) {
+                                // Handle invalid input
+                              }
+                            },
+                          ),
                           const SizedBox(height: 8),
                           Text(
                               'Number of Games: ${_selectedTemplate!.gamesCount}'),
                           const SizedBox(height: 8),
-                          Text(
-                              'Prize Distribution: ${_selectedTemplate!.prizeFirstPlace}% / ${_selectedTemplate!.prizeSecondPlace}% / ${_selectedTemplate!.prizeThirdPlace}%'),
+                          Row(
+                            children: [
+                              Expanded(
+                                child: TextFormField(
+                                  initialValue: _prizeFirstPlace.toString(),
+                                  decoration: const InputDecoration(
+                                    labelText: '1st Place (%)',
+                                    border: OutlineInputBorder(),
+                                  ),
+                                  keyboardType: TextInputType.number,
+                                  onChanged: (value) {
+                                    setState(() {
+                                      _prizeFirstPlace = Felt.fromInt(
+                                          int.tryParse(value) ?? 0);
+                                    });
+                                  },
+                                ),
+                              ),
+                              const SizedBox(width: 8),
+                              Expanded(
+                                child: TextFormField(
+                                  initialValue: _prizeSecondPlace.toString(),
+                                  decoration: const InputDecoration(
+                                    labelText: '2nd Place (%)',
+                                    border: OutlineInputBorder(),
+                                  ),
+                                  keyboardType: TextInputType.number,
+                                  onChanged: (value) {
+                                    setState(() {
+                                      _prizeSecondPlace = Felt.fromInt(
+                                          int.tryParse(value) ?? 0);
+                                    });
+                                  },
+                                ),
+                              ),
+                              const SizedBox(width: 8),
+                              Expanded(
+                                child: TextFormField(
+                                  initialValue: _prizeThirdPlace.toString(),
+                                  decoration: const InputDecoration(
+                                    labelText: '3rd Place (%)',
+                                    border: OutlineInputBorder(),
+                                  ),
+                                  keyboardType: TextInputType.number,
+                                  onChanged: (value) {
+                                    setState(() {
+                                      _prizeThirdPlace = Felt.fromInt(
+                                          int.tryParse(value) ?? 0);
+                                    });
+                                  },
+                                ),
+                              ),
+                            ],
+                          ),
                         ],
                       ),
                     ),

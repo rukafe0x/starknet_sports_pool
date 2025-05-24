@@ -121,7 +121,6 @@ Future<List<TournamentTemplate>> getTournamentTemplates() async {
 }
 
 Future<String> createTournamentInstance(
-    int instanceId,
     int templateId,
     String name,
     String description,
@@ -149,8 +148,7 @@ Future<String> createTournamentInstance(
       contractAddress: Felt.fromHexString(contractAddress),
       entryPointSelector: getSelectorByName("save_tournament_instance"),
       calldata: [
-        Felt.fromInt(instanceId),
-        Felt.fromInt(instanceId),
+        Felt.fromInt(0),
         Felt.fromInt(templateId),
         Felt.fromString(name),
         Felt.fromString(description),
@@ -501,4 +499,29 @@ Future<List<int>> getUserInstancePredictionsList(String userAddress) async {
     error: (error) =>
         throw Exception("Failed to get user instance predictions list"),
   );
+}
+
+Future<String> approveEntryFee(int instanceId, Uint256 entryFee) async {
+  final strkTokenAddress = dotenv.env['STRK_TOKEN_ADDRESS'] ?? '';
+  final response = await signeraccount.execute(functionCalls: [
+    FunctionCall(
+      contractAddress: Felt.fromHexString(strkTokenAddress),
+      entryPointSelector: getSelectorByName("approve"),
+      calldata: [
+        Felt.fromHexString(contractAddress), // spender (contract address)
+        entryFee.low, // amount low
+        entryFee.high, // amount high
+      ],
+    ),
+  ]);
+
+  final txHash = response.when(
+    result: (result) => result.transaction_hash,
+    error: (err) => throw Exception("Failed to approve entry fee"),
+  );
+
+  await waitForAcceptance(transactionHash: txHash, provider: provider);
+
+  print('Approving entry fee TX: $txHash');
+  return txHash;
 }

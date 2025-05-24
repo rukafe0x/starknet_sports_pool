@@ -50,6 +50,7 @@ dev_dependencies:
   starknet:
   #starknet_flutter:
   starknet_provider:
+  avnu_provider:
 # For information on the generic Dart part of this file, see the
 # following page: https://dart.dev/tools/pub/pubspec
 

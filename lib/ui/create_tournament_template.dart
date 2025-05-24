@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../services/services.dart';
+import '../utils/utils.dart';
 import './create_tournament_template_games.dart';
 
 class CreateTournamentTemplate extends StatefulWidget {
@@ -12,16 +13,27 @@ class CreateTournamentTemplate extends StatefulWidget {
 
 class _CreateTournamentTemplateState extends State<CreateTournamentTemplate> {
   final _formKey = GlobalKey<FormState>();
-
-  String _name = '';
-  String _description = '';
-  String _imageUrl = '';
-  double _entryFee = 0.0;
-  double _prizeFirstPlace = 0.0;
-  double _prizeSecondPlace = 0.0;
-  double _prizeThirdPlace = 0.0;
+  int _tournamentTemplateId = 0;
+  String _tournamentName = '';
+  String _tournamentDescription = '';
+  String _tournamentImage = '';
+  String _entryFee = '';
+  int _prizeFirstPlace = 0;
+  int _prizeSecondPlace = 0;
+  int _prizeThirdPlace = 0;
+  bool _isLoading = false;
 
   bool _showImagePreview = false;
+
+  bool _areAllFieldsFilled() {
+    return _tournamentName.isNotEmpty &&
+        _tournamentDescription.isNotEmpty &&
+        _tournamentImage.isNotEmpty &&
+        _entryFee.isNotEmpty &&
+        _prizeFirstPlace > 0 &&
+        _prizeSecondPlace > 0 &&
+        _prizeThirdPlace > 0;
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -57,20 +69,21 @@ class _CreateTournamentTemplateState extends State<CreateTournamentTemplate> {
           children: [
             TextFormField(
               decoration: const InputDecoration(labelText: 'Name'),
-              onChanged: (value) => setState(() => _name = value),
+              onChanged: (value) => setState(() => _tournamentName = value),
               validator: (value) =>
                   value!.isEmpty ? 'Please enter a name' : null,
             ),
             TextFormField(
               decoration: const InputDecoration(labelText: 'Description'),
-              onChanged: (value) => setState(() => _description = value),
+              onChanged: (value) =>
+                  setState(() => _tournamentDescription = value),
               maxLines: 3,
             ),
             const SizedBox(height: 16),
             TextFormField(
               decoration: const InputDecoration(labelText: 'Image URL'),
               onChanged: (value) => setState(() {
-                _imageUrl = value;
+                _tournamentImage = value;
                 _showImagePreview = false;
               }),
               validator: (value) =>
@@ -79,7 +92,7 @@ class _CreateTournamentTemplateState extends State<CreateTournamentTemplate> {
             const SizedBox(height: 8),
             ElevatedButton(
               onPressed: () {
-                if (_imageUrl.isNotEmpty) {
+                if (_tournamentImage.isNotEmpty) {
                   setState(() {
                     _showImagePreview = true;
                   });
@@ -87,11 +100,11 @@ class _CreateTournamentTemplateState extends State<CreateTournamentTemplate> {
               },
               child: const Text('Show Image Preview'),
             ),
-            if (_showImagePreview && _imageUrl.isNotEmpty)
+            if (_showImagePreview && _tournamentImage.isNotEmpty)
               Padding(
                 padding: const EdgeInsets.symmetric(vertical: 16.0),
                 child: Image.network(
-                  _imageUrl,
+                  _tournamentImage,
                   loadingBuilder: (context, child, loadingProgress) {
                     if (loadingProgress == null) return child;
                     return Center(child: CircularProgressIndicator());
@@ -104,17 +117,31 @@ class _CreateTournamentTemplateState extends State<CreateTournamentTemplate> {
             TextFormField(
               decoration: const InputDecoration(labelText: 'Entry Fee'),
               keyboardType: TextInputType.number,
-              onChanged: (value) =>
-                  setState(() => _entryFee = double.tryParse(value) ?? 0.0),
-              validator: (value) =>
-                  value!.isEmpty ? 'Please enter an entry fee' : null,
+              onChanged: (value) {
+                setState(() => _entryFee = value);
+              },
+              validator: (value) {
+                if (value == null || value.isEmpty) {
+                  return 'Please enter an entry fee';
+                }
+                try {
+                  // Validate that it's a valid number
+                  final amount = double.tryParse(value);
+                  if (amount == null || amount < 0) {
+                    return 'Please enter a valid positive number';
+                  }
+                  return null;
+                } catch (e) {
+                  return 'Please enter a valid number';
+                }
+              },
             ),
             TextFormField(
               decoration:
                   const InputDecoration(labelText: 'Prize First Place (%)'),
               keyboardType: TextInputType.number,
-              onChanged: (value) => setState(
-                  () => _prizeFirstPlace = double.tryParse(value) ?? 0.0),
+              onChanged: (value) =>
+                  setState(() => _prizeFirstPlace = int.tryParse(value) ?? 0),
               validator: (value) =>
                   value!.isEmpty ? 'Please enter first place prize' : null,
             ),
@@ -122,8 +149,8 @@ class _CreateTournamentTemplateState extends State<CreateTournamentTemplate> {
               decoration:
                   const InputDecoration(labelText: 'Prize Second Place (%)'),
               keyboardType: TextInputType.number,
-              onChanged: (value) => setState(
-                  () => _prizeSecondPlace = double.tryParse(value) ?? 0.0),
+              onChanged: (value) =>
+                  setState(() => _prizeSecondPlace = int.tryParse(value) ?? 0),
               validator: (value) =>
                   value!.isEmpty ? 'Please enter second place prize' : null,
             ),
@@ -131,43 +158,47 @@ class _CreateTournamentTemplateState extends State<CreateTournamentTemplate> {
               decoration:
                   const InputDecoration(labelText: 'Prize Third Place (%)'),
               keyboardType: TextInputType.number,
-              onChanged: (value) => setState(
-                  () => _prizeThirdPlace = double.tryParse(value) ?? 0.0),
+              onChanged: (value) =>
+                  setState(() => _prizeThirdPlace = int.tryParse(value) ?? 0),
               validator: (value) =>
                   value!.isEmpty ? 'Please enter third place prize' : null,
             ),
             const SizedBox(height: 24),
             ElevatedButton(
-              onPressed: () async {
-                final tournamentTemplateId = await getTournamentTemplateId();
-                if (_formKey.currentState!.validate()) {
-                  // Print values to console
-                  print('Name: $_name');
-                  print('Description: $_description');
-                  print('Image URL: $_imageUrl');
-                  print('Entry Fee: $_entryFee');
-                  print('Prize First Place: $_prizeFirstPlace%');
-                  print('Prize Second Place: $_prizeSecondPlace%');
-                  print('Prize Third Place: $_prizeThirdPlace%');
-                  await _saveTournamentTemplate(
-                      tournamentTemplateId,
-                      _name,
-                      _description,
-                      _imageUrl,
-                      BigInt.from(_entryFee),
-                      BigInt.from(_prizeFirstPlace),
-                      BigInt.from(_prizeSecondPlace),
-                      BigInt.from(_prizeThirdPlace));
-                }
-                // Navigate to the next screen
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                      builder: (context) => CreateTournamentTemplateGames(
-                          tournamentName: _name,
-                          tournamentId: tournamentTemplateId)),
-                );
-              },
+              onPressed: _areAllFieldsFilled()
+                  ? () async {
+                      final tournamentTemplateId =
+                          await getTournamentTemplateId();
+                      if (_formKey.currentState!.validate()) {
+                        // Print values to console
+                        print('Name: $_tournamentName');
+                        print('Description: $_tournamentDescription');
+                        print('Image URL: $_tournamentImage');
+                        print('Entry Fee: $_entryFee');
+                        print('Prize First Place: $_prizeFirstPlace%');
+                        print('Prize Second Place: $_prizeSecondPlace%');
+                        print('Prize Third Place: $_prizeThirdPlace%');
+                        await _saveTournamentTemplate(
+                            tournamentTemplateId,
+                            _tournamentName,
+                            _tournamentDescription,
+                            _tournamentImage,
+                            (strkToUint256(_entryFee).high.toBigInt() << 128) |
+                                strkToUint256(_entryFee).low.toBigInt(),
+                            BigInt.from(_prizeFirstPlace),
+                            BigInt.from(_prizeSecondPlace),
+                            BigInt.from(_prizeThirdPlace));
+                      }
+                      // Navigate to the next screen
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                            builder: (context) => CreateTournamentTemplateGames(
+                                tournamentName: _tournamentName,
+                                tournamentId: tournamentTemplateId)),
+                      );
+                    }
+                  : null,
               child: const Text('Create Tournament Template'),
             ),
           ],
