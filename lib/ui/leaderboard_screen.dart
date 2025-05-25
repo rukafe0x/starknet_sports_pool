@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import '../services/services.dart';
+import 'package:starknet/starknet.dart';
+import '../utils/utils.dart';
 
 class LeaderboardScreen extends StatefulWidget {
   final int instanceId;
@@ -14,7 +16,7 @@ class _LeaderboardScreenState extends State<LeaderboardScreen> {
   List<Map<String, dynamic>> _leaderboard = [];
   bool _isLoading = true;
   String? _userAddress;
-  BigInt? _prize;
+  Uint256? _prize;
   bool _isCheckingPrize = false;
   bool _isPayingPrize = false;
 
@@ -32,7 +34,7 @@ class _LeaderboardScreenState extends State<LeaderboardScreen> {
     setState(() => _isCheckingPrize = true);
     try {
       await _loadUserAddress();
-      final prize = await checkPrice(widget.instanceId, _userAddress!);
+      final prize = await checkPrice(widget.instanceId);
       setState(() {
         _prize = prize;
         _isCheckingPrize = false;
@@ -48,15 +50,15 @@ class _LeaderboardScreenState extends State<LeaderboardScreen> {
   Future<void> _payPrize() async {
     setState(() => _isPayingPrize = true);
     try {
-      await payPrice(widget.instanceId, _userAddress!);
+      final txHash = await claimPrice(widget.instanceId);
       setState(() => _isPayingPrize = false);
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Prize received!')),
+        const SnackBar(content: Text('Prize claimed!')),
       );
     } catch (e) {
       setState(() => _isPayingPrize = false);
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Error receiving prize: $e')),
+        SnackBar(content: Text('Error claiming prize: $e')),
       );
     }
   }
@@ -100,28 +102,33 @@ class _LeaderboardScreenState extends State<LeaderboardScreen> {
                               )
                             : const Text('Check Prize'),
                       ),
-                      if (_prize != null && _prize! > BigInt.zero)
+                      if (_prize != null)
                         Column(
                           children: [
                             const SizedBox(height: 8),
                             Text(
-                              '🎉 Congratulations! You have a prize of $_prize!',
-                              style: const TextStyle(
-                                  color: Colors.green,
+                              _prize!.toBigInt() > BigInt.zero
+                                  ? '🎉 Great! You have a prize of ${formatTokenBalance(_prize!, decimals: 18)} STRK.'
+                                  : '😔 Sorry, no prize this time. Keep playing and good luck next time!',
+                              style: TextStyle(
+                                  color: _prize!.toBigInt() > BigInt.zero
+                                      ? Colors.green
+                                      : Colors.red,
                                   fontWeight: FontWeight.bold),
                             ),
                             const SizedBox(height: 8),
-                            ElevatedButton(
-                              onPressed: _isPayingPrize ? null : _payPrize,
-                              child: _isPayingPrize
-                                  ? const SizedBox(
-                                      width: 20,
-                                      height: 20,
-                                      child: CircularProgressIndicator(
-                                          strokeWidth: 2),
-                                    )
-                                  : const Text('Receive Prize'),
-                            ),
+                            if (_prize!.toBigInt() > BigInt.zero)
+                              ElevatedButton(
+                                onPressed: _isPayingPrize ? null : _payPrize,
+                                child: _isPayingPrize
+                                    ? const SizedBox(
+                                        width: 20,
+                                        height: 20,
+                                        child: CircularProgressIndicator(
+                                            strokeWidth: 2),
+                                      )
+                                    : const Text('Claim Prize'),
+                              ),
                           ],
                         ),
                     ],

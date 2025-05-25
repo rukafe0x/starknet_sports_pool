@@ -90,6 +90,18 @@ mod SportsPool {
         user: ContractAddress,
         points: u8,
     }
+
+    #[event]
+    #[derive(Drop, PartialEq, starknet::Event)]
+    pub enum Event {
+        Trace: Trace,
+    }
+
+    #[derive(Drop, PartialEq, starknet::Event)]
+    pub struct Trace {
+        #[key]
+        pub msg: felt252,
+    }
     
     #[abi(per_item)]
     #[generate_trait]
@@ -325,7 +337,7 @@ mod SportsPool {
         }
 
         #[external(v0)]
-        fn pay_price(ref self: ContractState, tournament_instance_id: u8) {
+        fn pay_prize(ref self: ContractState, tournament_instance_id: u8) {
             // Get tournament_template_id from the instance
             let tournament_template_id = self._tournament_instance.entry(tournament_instance_id).tournament_template_id.read();
             // create an array with all results of the games for that template
@@ -424,7 +436,12 @@ mod SportsPool {
 
             // if msg sender is in top 3, transfer the price of the tournament instance to the msg sender
             let msg_sender = get_caller_address();
+            self.emit(Trace { msg: leader1.user.into()});
+            self.emit(Trace { msg: leader2.user.into()});
+            self.emit(Trace { msg: leader3.user.into()});
+            self.emit(Trace { msg: 1});
             if leader1.user == msg_sender || leader2.user == msg_sender || leader3.user == msg_sender {
+                self.emit(Trace { msg: 2});
                 // get the price of the tournament instance
                 // the price is the price_N_place as a porcentage of the total particpants * entry fee
                 let entry_fee = self._tournament_instance.entry(tournament_instance_id).entry_fee.read();
@@ -434,12 +451,15 @@ mod SportsPool {
                 if leader1.user == msg_sender {
                     let price_first_place: u256 = self._tournament_instance.entry(tournament_instance_id).prize_first_place.read().into();
                     price = (entry_fee * total_participants.into()) * price_first_place / 100;
+                    self.emit(Trace { msg: 3});
                 } else if leader2.user == msg_sender {
                     let price_second_place: u256 = self._tournament_instance.entry(tournament_instance_id).prize_second_place.read().into();
                     price = (entry_fee * total_participants.into()) * price_second_place / 100;
+                    self.emit(Trace { msg: 4});
                 } else if leader3.user == msg_sender {
                     let price_third_place: u256 = self._tournament_instance.entry(tournament_instance_id).prize_third_place.read().into();
                     price = (entry_fee * total_participants.into()) * price_third_place / 100;
+                    self.emit(Trace { msg: 5});
                 }
                 // transfer the price to the msg sender
                 let strk_token_dispatcher = ERC20ABIDispatcher {
@@ -448,11 +468,12 @@ mod SportsPool {
                     >() // STRK Contract Address
                 };
                 strk_token_dispatcher.transfer(msg_sender, price);
+                self.emit(Trace { msg: 6});
             }
         }
 
         #[external(v0)]
-        fn check_price(ref self: ContractState, tournament_instance_id: u8) -> u256 {
+        fn check_prize(self: @ContractState, tournament_instance_id: u8) -> u256 {
             // Get tournament_template_id from the instance
             let tournament_template_id = self._tournament_instance.entry(tournament_instance_id).tournament_template_id.read();
             // create an array with all results of the games for that template

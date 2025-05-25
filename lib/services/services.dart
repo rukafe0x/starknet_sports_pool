@@ -595,15 +595,36 @@ Future<void> withdrawEth(String from, String to, Uint256 amount) async {
 }
 
 // Check prize for a user in a tournament instance
-Future<BigInt> checkPrice(int instanceId, String userAddress) async {
-  // TODO: Replace with actual contract call
-  // Simulate a prize for demonstration
-  await Future.delayed(const Duration(seconds: 1));
-  return BigInt.from(1000000000000000000); // 1 token as example
+Future<Uint256> checkPrice(int instanceId) async {
+  final result = await provider.call(
+    request: FunctionCall(
+      contractAddress: Felt.fromHexString(contractAddress),
+      entryPointSelector: getSelectorByName("check_prize"),
+      calldata: [Felt.fromInt(instanceId)],
+    ),
+    blockId: BlockId.latest,
+  );
+  return result.when(
+    result: (result) => Uint256.fromFeltList([result[0], result[1]]),
+    error: (error) => throw Exception("Failed to check prize"),
+  );
 }
 
 // Pay prize to a user in a tournament instance
-Future<void> payPrice(int instanceId, String userAddress) async {
-  // TODO: Replace with actual contract call
-  await Future.delayed(const Duration(seconds: 2));
+Future<void> claimPrice(int instanceId) async {
+  final account = await getSignerAccount();
+
+  final response = await account.execute(functionCalls: [
+    FunctionCall(
+      contractAddress: Felt.fromHexString(contractAddress),
+      entryPointSelector: getSelectorByName("pay_prize"),
+      calldata: [Felt.fromInt(instanceId)],
+    ),
+  ]);
+  final txHash = response.when(
+    result: (result) => result.transaction_hash,
+    error: (err) => throw Exception("Failed to claim prize"),
+  );
+  print('Claiming prize TX: $txHash');
+  await waitForAcceptance(transactionHash: txHash, provider: provider);
 }

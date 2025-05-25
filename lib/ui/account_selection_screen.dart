@@ -36,6 +36,8 @@ class _AccountSelectionScreenState extends State<AccountSelectionScreen> {
   }
 
   Future<void> _loadAccounts() async {
+    if (!mounted) return;
+    setState(() => _isLoading = true);
     try {
       // Get all stored keys
       final allKeys = await _storage.readAll();
@@ -69,14 +71,14 @@ class _AccountSelectionScreenState extends State<AccountSelectionScreen> {
       };
       accounts.add(account2);
 
+      if (!mounted) return;
       setState(() {
         _accounts = accounts;
         _isLoading = false;
       });
     } catch (e) {
-      setState(() {
-        _isLoading = false;
-      });
+      if (!mounted) return;
+      setState(() => _isLoading = false);
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text('Error loading accounts: $e')),
       );

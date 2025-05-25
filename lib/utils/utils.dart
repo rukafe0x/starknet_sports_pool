@@ -87,7 +87,9 @@ String uint256ToStrkString(Uint256 amount) {
 
   if (strAmount.length <= 18) {
     // If the number is smaller than 18 decimals, pad with zeros
-    return '0.${strAmount.padLeft(18, '0')}';
+    final padded = strAmount.padLeft(18, '0');
+    final trimmed = padded.replaceAll(RegExp(r'0+$'), '');
+    return trimmed.isEmpty ? '0' : '0.$trimmed';
   } else {
     // Split the number at the decimal point
     final decimalPart = strAmount.substring(strAmount.length - 18);
@@ -98,7 +100,9 @@ String uint256ToStrkString(Uint256 amount) {
       return wholePart;
     }
 
-    return '$wholePart.$decimalPart';
+    // Remove trailing zeros from decimal part
+    final trimmedDecimal = decimalPart.replaceAll(RegExp(r'0+$'), '');
+    return trimmedDecimal.isEmpty ? wholePart : '$wholePart.$trimmedDecimal';
   }
 }
 
@@ -130,15 +134,16 @@ String formatStrkBalance(Uint256 balance, {int decimals = 4}) {
 }
 
 String formatTokenBalance(Uint256 balance,
-    {int decimals = 18, int displayDecimals = 4}) {
+    {int decimals = 18, int displayDecimals = 18}) {
   final bigInt = balance.toBigInt();
   final divisor = BigInt.from(10).pow(decimals);
   final whole = bigInt ~/ divisor;
   final fraction = (bigInt % divisor)
       .toString()
       .padLeft(decimals, '0')
-      .substring(0, displayDecimals);
-  return '$whole.$fraction';
+      .substring(0, displayDecimals)
+      .replaceAll(RegExp(r'0+$'), '');
+  return fraction.isEmpty ? '$whole' : '$whole.$fraction';
 }
 
 BigInt parseTokenAmount(String value, {int decimals = 18}) {

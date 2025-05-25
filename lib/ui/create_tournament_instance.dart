@@ -116,7 +116,7 @@ class _CreateTournamentInstanceState extends State<CreateTournamentInstance> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Create Tournament Instance'),
+        title: const Text('Create New League'),
       ),
       body: _isLoading
           ? const Center(child: CircularProgressIndicator())
@@ -219,15 +219,11 @@ class _CreateTournamentInstanceState extends State<CreateTournamentInstance> {
                                 const SizedBox(height: 16),
                               ],
                             ),
-                          Text(
-                            'Template: ${_selectedTemplate!.name}',
-                            style: const TextStyle(fontWeight: FontWeight.bold),
-                          ),
                           const SizedBox(height: 8),
                           TextFormField(
                             initialValue: _name,
                             decoration: const InputDecoration(
-                              labelText: 'Tournament Name',
+                              labelText: 'New League Name',
                               border: OutlineInputBorder(),
                             ),
                             onChanged: (value) {
@@ -240,7 +236,7 @@ class _CreateTournamentInstanceState extends State<CreateTournamentInstance> {
                           TextFormField(
                             initialValue: _description,
                             decoration: const InputDecoration(
-                              labelText: 'Description',
+                              labelText: 'New League Description',
                               border: OutlineInputBorder(),
                             ),
                             onChanged: (value) {
@@ -268,9 +264,6 @@ class _CreateTournamentInstanceState extends State<CreateTournamentInstance> {
                               }
                             },
                           ),
-                          const SizedBox(height: 8),
-                          Text(
-                              'Number of Games: ${_selectedTemplate!.gamesCount}'),
                           const SizedBox(height: 8),
                           Row(
                             children: [
@@ -334,7 +327,7 @@ class _CreateTournamentInstanceState extends State<CreateTournamentInstance> {
 
                     // Games List
                     const Text(
-                      'Tournament Games',
+                      'New League Games',
                       style:
                           TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
                     ),
@@ -409,7 +402,7 @@ class _CreateTournamentInstanceState extends State<CreateTournamentInstance> {
                         minimumSize: const Size(double.infinity, 50),
                       ),
                       child: const Text(
-                        'Create Tournament Instance',
+                        'Create League',
                         style: TextStyle(fontSize: 18),
                       ),
                     ),
