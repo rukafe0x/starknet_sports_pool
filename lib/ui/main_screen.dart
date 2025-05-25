@@ -101,22 +101,11 @@ class _MainScreenState extends State<MainScreen> {
                 Navigator.push(
                   context,
                   MaterialPageRoute(
-                    builder: (context) => const LeaderboardScreen(),
-                  ),
-                );
-              },
-              child: const Text('View Leaderboard'),
-            ),
-            ElevatedButton(
-              onPressed: () {
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(
                     builder: (context) => const PlayTournamentScreen(),
                   ),
                 );
               },
-              child: const Text('Play a tournament'),
+              child: const Text('Play a league'),
             ),
             ElevatedButton(
               onPressed: () {
@@ -130,7 +119,7 @@ class _MainScreenState extends State<MainScreen> {
                   ),
                 );
               },
-              child: Text('Create new tournament'),
+              child: Text('Create a new league'),
             ),
             if (widget.owner == Felt.fromHexString(widget.accountAddress))
               ElevatedButton(
@@ -143,7 +132,7 @@ class _MainScreenState extends State<MainScreen> {
                     ),
                   );
                 },
-                child: Text('Create new tournament template'),
+                child: Text('Create a new tournament template'),
               ),
             if (widget.owner == Felt.fromHexString(widget.accountAddress))
               ElevatedButton(
@@ -155,7 +144,7 @@ class _MainScreenState extends State<MainScreen> {
                     ),
                   );
                 },
-                child: Text('Edit tournament template'),
+                child: Text('Edit tournament results'),
               ),
             ElevatedButton(
               onPressed: () {

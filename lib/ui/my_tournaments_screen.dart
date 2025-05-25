@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import '../services/services.dart';
 import '../models/game.dart';
 import 'package:starknet/starknet.dart';
+import 'leaderboard_screen.dart';
 
 class MyTournamentsScreen extends StatefulWidget {
   final String userAddress;
@@ -172,6 +173,24 @@ class _MyTournamentsScreenState extends State<MyTournamentsScreen> {
                     ),
                   ),
                   const SizedBox(height: 16),
+                  if (_selectedInstance != null)
+                    Padding(
+                      padding: const EdgeInsets.symmetric(vertical: 8.0),
+                      child: ElevatedButton(
+                        onPressed: () {
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (context) => LeaderboardScreen(
+                                instanceId:
+                                    _selectedInstance!['instance_id'].toInt(),
+                              ),
+                            ),
+                          );
+                        },
+                        child: const Text('View Leaderboard'),
+                      ),
+                    ),
                   if (_selectedInstance != null && _games.isNotEmpty) ...[
                     Expanded(
                       child: Card(
