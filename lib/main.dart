@@ -6,28 +6,26 @@ import 'package:starknet/starknet.dart';
 import 'services/services.dart';
 import 'ui/main_screen.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
+import 'ui/account_selection_screen.dart';
 
 void main() async {
+  WidgetsFlutterBinding.ensureInitialized();
   await dotenv.load(fileName: ".env");
   runApp(const MyApp());
 }
 
 class MyApp extends StatelessWidget {
-  const MyApp({Key? key}) : super(key: key);
+  const MyApp({super.key});
 
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      title: 'Starknet Wallet',
-      debugShowCheckedModeBanner: false,
+      title: 'Starknet Sports Pool',
       theme: ThemeData(
-        primarySwatch: Colors.deepPurple,
+        colorScheme: ColorScheme.fromSeed(seedColor: const Color(0xFF6750A4)),
         useMaterial3: true,
-        colorScheme: ColorScheme.fromSeed(
-          seedColor: const Color(0xFF6750A4),
-        ),
       ),
-      home: const SeedPhraseScreen(),
+      home: const AccountSelectionScreen(),
     );
   }
 }
@@ -118,6 +116,7 @@ class _SeedPhraseScreenState extends State<SeedPhraseScreen> {
               builder: (context) => MainScreen(
                 accountAddress: signeraccount.accountAddress.toHexString(),
                 owner: _owner,
+                accountNickname: 'Starknet Sports Pool',
               ),
             ),
           );

@@ -113,34 +113,6 @@ class _PlayTournamentScreenState extends State<PlayTournamentScreen> {
       return;
     }
 
-    // Show confirmation dialog for entry fee approval
-    final bool? confirmApproval = await showDialog<bool>(
-      context: context,
-      builder: (BuildContext context) {
-        return AlertDialog(
-          title: const Text('Approve Entry Fee'),
-          content: Text(
-            'You need to approve a transfer of ${uint256ToStrkString(_selectedInstance!['entry_fee'])} STRK tokens as entry fee for this tournament. Do you want to proceed?',
-          ),
-          actions: <Widget>[
-            TextButton(
-              child: const Text('Cancel'),
-              onPressed: () => Navigator.of(context).pop(false),
-            ),
-            TextButton(
-              child: const Text('Approve'),
-              onPressed: () => Navigator.of(context).pop(true),
-            ),
-          ],
-        );
-      },
-    );
-
-    // If user cancels, return early
-    if (confirmApproval != true) {
-      return;
-    }
-
     setState(() => _isLoading = true);
 
     try {
@@ -149,6 +121,30 @@ class _PlayTournamentScreenState extends State<PlayTournamentScreen> {
         _selectedInstance!['instance_id'].toInt(),
         _selectedInstance!['entry_fee'],
       );
+
+      // Show confirmation dialog
+      final proceed = await showDialog<bool>(
+        context: context,
+        builder: (context) => AlertDialog(
+          title: const Text('Confirm Charge'),
+          content: const Text(
+              'Entry fee has been approved. The charge will now be effective and discounted from your account. Do you want to continue?'),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.of(context).pop(false),
+              child: const Text('Cancel'),
+            ),
+            TextButton(
+              onPressed: () => Navigator.of(context).pop(true),
+              child: const Text('Ok'),
+            ),
+          ],
+        ),
+      );
+
+      if (proceed != true) {
+        return; // User cancelled, do not proceed
+      }
 
       // Then save the predictions
       final predictions = _games.map((game) {

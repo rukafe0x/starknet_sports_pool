@@ -6,17 +6,41 @@ import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:starknet_sports_pool/utils/utils.dart';
 import '../models/game.dart';
 import '../models/tournament_template.dart';
+import 'package:flutter_secure_storage/flutter_secure_storage.dart';
+import 'dart:convert';
+
+final _storage = const FlutterSecureStorage();
+
+Future<String> getSecretAccountAddress() async {
+  final accountData = await _storage.read(key: 'selected_account');
+  if (accountData == null) return '';
+  final data = jsonDecode(accountData);
+  return data['address'] ?? '';
+}
+
+Future<String> getSecretAccountPrivateKey() async {
+  final accountData = await _storage.read(key: 'selected_account');
+  if (accountData == null) return '';
+  final data = jsonDecode(accountData);
+  return data['privateKey'] ?? '';
+}
+
+final secretAccountAddress = getSecretAccountAddress();
+final secretAccountPrivateKey = getSecretAccountPrivateKey();
 
 final provider =
     JsonRpcProvider(nodeUri: Uri.parse(dotenv.env['STARKNET_NODE_URI'] ?? ''));
 final contractAddress = dotenv.env['CONTRACT_ADDRESS'] ?? '';
-final secretAccountAddress = dotenv.env['SECRET_ACCOUNT_ADDRESS'] ?? '';
-final secretAccountPrivateKey = dotenv.env['SECRET_ACCOUNT_PRIVATE_KEY'] ?? '';
-final signeraccount = getAccount(
-  accountAddress: Felt.fromHexString(secretAccountAddress),
-  privateKey: Felt.fromHexString(secretAccountPrivateKey),
-  nodeUri: Uri.parse(dotenv.env['STARKNET_NODE_URI'] ?? ''),
-);
+
+Future<Account> getSignerAccount() async {
+  final address = await getSecretAccountAddress();
+  final privateKey = await getSecretAccountPrivateKey();
+  return getAccount(
+    accountAddress: Felt.fromHexString(address),
+    privateKey: Felt.fromHexString(privateKey),
+    nodeUri: Uri.parse(dotenv.env['STARKNET_NODE_URI'] ?? ''),
+  );
+}
 
 Future<Felt> getOwner() async {
   final result = await provider.call(
@@ -129,21 +153,8 @@ Future<String> createTournamentInstance(
     Felt prizeFirstPlace,
     Felt prizeSecondPlace,
     Felt prizeThirdPlace) async {
-  // in cairo:
-  //   fn save_tournament_instance(ref self: ContractState, tournament_instance_id: u8, tournament_instance: tournament_instance) {
-  //   where:
-  //       struct tournament_instance {
-  //     instance_id: u8,
-  //     tournament_template_id: u8,
-  //     name: felt252,
-  //     description: felt252,
-  //     image_url: felt252,
-  //     entry_fee: u256,
-  //     prize_first_place: u256,
-  //     prize_second_place: u256,
-  //     prize_third_place: u256,
-  // }
-  final response = await signeraccount.execute(functionCalls: [
+  final account = await getSignerAccount();
+  final response = await account.execute(functionCalls: [
     FunctionCall(
       contractAddress: Felt.fromHexString(contractAddress),
       entryPointSelector: getSelectorByName("save_tournament_instance"),
@@ -180,9 +191,9 @@ Future<String> saveTournamentTemplate(
     BigInt prizeFirstPlace,
     BigInt prizeSecondPlace,
     BigInt prizeThirdPlace) async {
+  final account = await getSignerAccount();
   final gamesCount = 0;
-  //AQU VOY PARECE QUE FALTA UN ID
-  final response = await signeraccount.execute(functionCalls: [
+  final response = await account.execute(functionCalls: [
     FunctionCall(
       contractAddress: Felt.fromHexString(contractAddress),
       entryPointSelector: getSelectorByName("save_tournament_template"),
@@ -212,10 +223,9 @@ Future<String> saveTournamentTemplate(
 
 Future<String> saveTournamentTemplateGames(
     int tournamentId, List<Game> games) async {
+  final account = await getSignerAccount();
   final gamesCount = games.length;
-  //define calldata as array of felt
   List<Felt> calldata = [];
-  // set calldata with Game values
   calldata.add(Felt.fromInt(tournamentId));
   calldata.add(Felt.fromInt(gamesCount));
   for (var game in games) {
@@ -228,7 +238,7 @@ Future<String> saveTournamentTemplateGames(
       Felt.fromInt(game.played ? 1 : 0)
     ]);
   }
-  final response = await signeraccount.execute(functionCalls: [
+  final response = await account.execute(functionCalls: [
     FunctionCall(
       contractAddress: Felt.fromHexString(contractAddress),
       entryPointSelector: getSelectorByName("save_tournament_template_games"),
@@ -341,15 +351,14 @@ Future<List<Map<String, dynamic>>> getTournamentInstances() async {
 
 Future<String> saveUserInstancePrediction(
     int instanceId, List<Map<String, dynamic>> predictions) async {
+  final account = await getSignerAccount();
   List<Felt> calldata = [];
   calldata.add(Felt.fromInt(instanceId));
   calldata.add(Felt.fromInt(predictions.length));
-
   for (var prediction in predictions) {
     calldata.add(Felt.fromInt(prediction['prediction']));
   }
-
-  final response = await signeraccount.execute(functionCalls: [
+  final response = await account.execute(functionCalls: [
     FunctionCall(
       contractAddress: Felt.fromHexString(contractAddress),
       entryPointSelector: getSelectorByName("save_user_instance_prediction"),
@@ -362,13 +371,16 @@ Future<String> saveUserInstancePrediction(
     error: (err) => throw Exception("Failed to save predictions"),
   );
 
+  await waitForAcceptance(transactionHash: txHash, provider: provider);
+
   print('Saving predictions TX: $txHash');
   return txHash;
 }
 
 Future<String> editGameResult(
     int tournamentId, int gameId, Felt goals1, Felt goals2, bool played) async {
-  final response = await signeraccount.execute(functionCalls: [
+  final account = await getSignerAccount();
+  final response = await account.execute(functionCalls: [
     FunctionCall(
       contractAddress: Felt.fromHexString(contractAddress),
       entryPointSelector: getSelectorByName("edit_game_result"),
@@ -502,16 +514,18 @@ Future<List<int>> getUserInstancePredictionsList(String userAddress) async {
 }
 
 Future<String> approveEntryFee(int instanceId, Uint256 entryFee) async {
+  final account = await getSignerAccount();
   final strkTokenAddress = dotenv.env['STRK_TOKEN_ADDRESS'] ?? '';
-  final response = await signeraccount.execute(functionCalls: [
+  final calldata = [
+    Felt.fromHexString(contractAddress), // spender (contract address)
+    entryFee.low, // amount low
+    entryFee.high, // amount high
+  ];
+  final response = await account.execute(functionCalls: [
     FunctionCall(
       contractAddress: Felt.fromHexString(strkTokenAddress),
       entryPointSelector: getSelectorByName("approve"),
-      calldata: [
-        Felt.fromHexString(contractAddress), // spender (contract address)
-        entryFee.low, // amount low
-        entryFee.high, // amount high
-      ],
+      calldata: calldata,
     ),
   ]);
 
