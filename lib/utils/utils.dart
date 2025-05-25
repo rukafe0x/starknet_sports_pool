@@ -119,3 +119,33 @@ Uint256 strkToUint256(String strkAmount) {
 
   return Uint256(low: low, high: high);
 }
+
+String formatStrkBalance(Uint256 balance, {int decimals = 4}) {
+  final bigInt = balance.toBigInt();
+  final divisor = BigInt.from(10).pow(18);
+  final whole = bigInt ~/ divisor;
+  final fraction =
+      (bigInt % divisor).toString().padLeft(18, '0').substring(0, decimals);
+  return '$whole.$fraction';
+}
+
+String formatTokenBalance(Uint256 balance,
+    {int decimals = 18, int displayDecimals = 4}) {
+  final bigInt = balance.toBigInt();
+  final divisor = BigInt.from(10).pow(decimals);
+  final whole = bigInt ~/ divisor;
+  final fraction = (bigInt % divisor)
+      .toString()
+      .padLeft(decimals, '0')
+      .substring(0, displayDecimals);
+  return '$whole.$fraction';
+}
+
+BigInt parseTokenAmount(String value, {int decimals = 18}) {
+  final parts = value.split('.');
+  final whole = parts[0];
+  final fraction = parts.length > 1 ? parts[1] : '';
+  final paddedFraction =
+      fraction.padRight(decimals, '0').substring(0, decimals);
+  return BigInt.parse(whole + paddedFraction);
+}

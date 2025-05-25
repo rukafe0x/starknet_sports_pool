@@ -539,3 +539,57 @@ Future<String> approveEntryFee(int instanceId, Uint256 entryFee) async {
   print('Approving entry fee TX: $txHash');
   return txHash;
 }
+
+// Placeholder: Get STRK balance for an address
+Future<Uint256> getStrkBalance(String address) async {
+  final strkTokenAddress = dotenv.env['STRK_TOKEN_ADDRESS'].toString() ?? '';
+  final account = await getSignerAccount();
+  final strk =
+      ERC20(account: account, address: Felt.fromHexString(strkTokenAddress));
+  final balance = await strk.balanceOf(Felt.fromHexString(address));
+  return balance;
+}
+
+// Placeholder: Get ETH balance for an address
+Future<Uint256> getEthBalance(String address) async {
+  final ethTokenAddress = dotenv.env['ETH_TOKEN_ADDRESS'].toString() ?? '';
+  final account = await getSignerAccount();
+  final eth =
+      ERC20(account: account, address: Felt.fromHexString(ethTokenAddress));
+  final balance = await eth.balanceOf(Felt.fromHexString(address));
+  return balance;
+}
+
+// Placeholder: Withdraw STRK to another address
+Future<void> withdrawStrk(String from, String to, Uint256 amount) async {
+  final account = await getSignerAccount();
+  final strkTokenAddress = dotenv.env['STRK_TOKEN_ADDRESS'].toString() ?? '';
+  final erc20 =
+      ERC20(account: account, address: Felt.fromHexString(strkTokenAddress));
+  var trx = await erc20.transfer(
+    Felt.fromHexString(to),
+    amount,
+  );
+  print('Transfer Transaction: $trx');
+  await waitForAcceptance(
+    transactionHash: trx,
+    provider: provider,
+  );
+}
+
+// Placeholder: Withdraw ETH to another address
+Future<void> withdrawEth(String from, String to, Uint256 amount) async {
+  final account = await getSignerAccount();
+  final ethTokenAddress = dotenv.env['ETH_TOKEN_ADDRESS'].toString() ?? '';
+  final eth =
+      ERC20(account: account, address: Felt.fromHexString(ethTokenAddress));
+  var trx = await eth.transfer(
+    Felt.fromHexString(to),
+    amount,
+  );
+  print('Transfer Transaction: $trx');
+  await waitForAcceptance(
+    transactionHash: trx,
+    provider: provider,
+  );
+}

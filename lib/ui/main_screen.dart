@@ -8,6 +8,7 @@ import 'edit_tournament_screen.dart';
 import 'leaderboard_screen.dart';
 import 'my_tournaments_screen.dart';
 import 'package:flutter/rendering.dart';
+import 'withdraw_screen.dart';
 
 class MainScreen extends StatefulWidget {
   final String accountAddress;
@@ -162,6 +163,19 @@ class _MainScreenState extends State<MainScreen> {
                 },
                 child: Text('Edit tournament template'),
               ),
+            ElevatedButton(
+              onPressed: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => WithdrawScreen(
+                      accountAddress: widget.accountAddress,
+                    ),
+                  ),
+                );
+              },
+              child: const Text('Withdraw balance'),
+            ),
           ],
         ),
       ),
