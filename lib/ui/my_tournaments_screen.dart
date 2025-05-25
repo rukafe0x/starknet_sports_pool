@@ -86,13 +86,38 @@ class _MyTournamentsScreenState extends State<MyTournamentsScreen> {
     final prediction = _predictions[gameIndex];
     switch (prediction) {
       case 0:
-        return 'Home Win';
-      case 1:
         return 'Draw';
+      case 1:
+        return 'Home Win';
       case 2:
         return 'Away Win';
       default:
         return 'Unknown';
+    }
+  }
+
+  bool _isPredictionCorrect(int index) {
+    final game = _games[index];
+    final prediction = _predictions[index];
+    int actualResult;
+    if (game.goals1.toInt() > game.goals2.toInt()) {
+      actualResult = 1; // Home Win
+    } else if (game.goals1.toInt() < game.goals2.toInt()) {
+      actualResult = 2; // Away Win
+    } else {
+      actualResult = 0; // Draw
+    }
+    return prediction == actualResult;
+  }
+
+  String _getActualResultText(int index) {
+    final game = _games[index];
+    if (game.goals1.toInt() > game.goals2.toInt()) {
+      return 'Home Win';
+    } else if (game.goals1.toInt() < game.goals2.toInt()) {
+      return 'Away Win';
+    } else {
+      return 'Draw';
     }
   }
 
@@ -221,6 +246,67 @@ class _MyTournamentsScreenState extends State<MyTournamentsScreen> {
                                                 ),
                                               ],
                                             ),
+                                            if (_games[index].played == true)
+                                              Row(
+                                                children: [
+                                                  Expanded(
+                                                    child: Container(
+                                                      height: 8,
+                                                      decoration: BoxDecoration(
+                                                        color:
+                                                            _isPredictionCorrect(
+                                                                    index)
+                                                                ? Colors.green
+                                                                : Colors.red,
+                                                        borderRadius:
+                                                            BorderRadius
+                                                                .circular(4),
+                                                      ),
+                                                    ),
+                                                  ),
+                                                  const SizedBox(width: 8),
+                                                  _isPredictionCorrect(index)
+                                                      ? Text(
+                                                          'Correct +3',
+                                                          style: TextStyle(
+                                                            color: Colors.green,
+                                                            fontWeight:
+                                                                FontWeight.bold,
+                                                            fontSize: 12,
+                                                          ),
+                                                        )
+                                                      : Column(
+                                                          crossAxisAlignment:
+                                                              CrossAxisAlignment
+                                                                  .start,
+                                                          children: [
+                                                            Text(
+                                                              'Wrong',
+                                                              style: TextStyle(
+                                                                color:
+                                                                    Colors.red,
+                                                                fontWeight:
+                                                                    FontWeight
+                                                                        .bold,
+                                                                fontSize: 12,
+                                                              ),
+                                                            ),
+                                                            Text(
+                                                              'Was: ${_getActualResultText(index)}',
+                                                              style:
+                                                                  const TextStyle(
+                                                                color:
+                                                                    Colors.red,
+                                                                fontSize: 12,
+                                                                fontWeight:
+                                                                    FontWeight
+                                                                        .normal,
+                                                              ),
+                                                            ),
+                                                          ],
+                                                        ),
+                                                ],
+                                              ),
                                           ],
                                         ),
                                       ),

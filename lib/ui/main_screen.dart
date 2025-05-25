@@ -94,7 +94,7 @@ class _MainScreenState extends State<MainScreen> {
                   ),
                 );
               },
-              child: const Text('Check my tournaments'),
+              child: const Text('Check my results'),
             ),
             ElevatedButton(
               onPressed: () {
@@ -132,13 +132,7 @@ class _MainScreenState extends State<MainScreen> {
               },
               child: Text('Create new tournament'),
             ),
-            ElevatedButton(
-              onPressed: () {
-                // Add your logic for edit tournament
-              },
-              child: Text('Edit tournament'),
-            ),
-            if (widget.owner.toHexString() == widget.accountAddress)
+            if (widget.owner == Felt.fromHexString(widget.accountAddress))
               ElevatedButton(
                 onPressed: () {
                   // navigate to create tournament template screen
@@ -151,7 +145,7 @@ class _MainScreenState extends State<MainScreen> {
                 },
                 child: Text('Create new tournament template'),
               ),
-            if (widget.owner.toHexString() == widget.accountAddress)
+            if (widget.owner == Felt.fromHexString(widget.accountAddress))
               ElevatedButton(
                 onPressed: () {
                   Navigator.push(
