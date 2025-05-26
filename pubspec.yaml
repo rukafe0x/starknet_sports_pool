@@ -81,6 +81,8 @@ flutter:
   assets:
     - .env
     - lib/assets/icon_good2.jpg
+    - lib/assets/icon_good1.jpg
+    - lib/assets/backg.png
   #   - images/a_dot_burr.jpeg
   #   - images/a_dot_ham.jpeg
 

@@ -77,7 +77,6 @@ class _MainScreenState extends State<MainScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Color(0xFFFAF5F0), // Beige suave RGB(250, 245, 240)
       appBar: AppBar(
         title: const Text(
           'Starknet Sports Pool',
@@ -132,132 +131,143 @@ class _MainScreenState extends State<MainScreen> {
           ),
         ),
       ),
-      body: Container(
-        color: Color(0xFFFAF5F0), // Beige suave RGB(250, 245, 240)
-        child: SingleChildScrollView(
-          child: Padding(
-            padding: const EdgeInsets.all(24),
+      body: Stack(
+        children: [
+          Positioned.fill(
+            child: Image.asset(
+              'lib/assets/backg.png',
+              fit: BoxFit.cover,
+            ),
+          ),
+          SafeArea(
             child: Column(
-              crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
-                // Players Section
-                Text('For Players',
-                    style: TextStyle(
-                        fontSize: 20,
-                        fontWeight: FontWeight.bold,
-                        color: Color(0xFF5D4037))),
-                const SizedBox(height: 8),
-                FunButton(
-                  onPressed: () {
-                    Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                          builder: (context) => const PlayTournamentScreen(),
-                        ));
-                  },
-                  child: const Text('Play a League'),
-                ),
-                FunButton(
-                  onPressed: () {
-                    Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                          builder: (context) => MyTournamentsScreen(
-                              userAddress: widget.accountAddress),
-                        ));
-                  },
-                  child: const Text('Check my Results'),
-                ),
-                const SizedBox(height: 24),
+                Expanded(
+                  child: SingleChildScrollView(
+                    child: Padding(
+                      padding: const EdgeInsets.all(24),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.stretch,
+                        children: [
+                          // Players Section
+                          Text('For Players',
+                              style: TextStyle(
+                                  fontSize: 20,
+                                  fontWeight: FontWeight.bold,
+                                  color: Colors.white)),
+                          const SizedBox(height: 8),
+                          FunButton(
+                            onPressed: () {
+                              Navigator.push(
+                                  context,
+                                  MaterialPageRoute(
+                                    builder: (context) =>
+                                        const PlayTournamentScreen(),
+                                  ));
+                            },
+                            child: const Text('Play a League'),
+                          ),
+                          FunButton(
+                            onPressed: () {
+                              Navigator.push(
+                                  context,
+                                  MaterialPageRoute(
+                                    builder: (context) => MyTournamentsScreen(
+                                        userAddress: widget.accountAddress),
+                                  ));
+                            },
+                            child: const Text('Check my Results'),
+                          ),
+                          const SizedBox(height: 24),
 
-                // Managers Section
-                Text('For Managers',
-                    style: TextStyle(
-                        fontSize: 20,
-                        fontWeight: FontWeight.bold,
-                        color: Color(0xFF5D4037))),
-                const SizedBox(height: 8),
-                FunButton(
-                  onPressed: () {
-                    Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                          builder: (context) => CreateTournamentInstance(
-                              accountAddress: widget.accountAddress),
-                        ));
-                  },
-                  child: const Text('Create a New league'),
-                ),
-                const SizedBox(height: 24),
+                          // Managers Section
+                          Text('For Managers',
+                              style: TextStyle(
+                                  fontSize: 20,
+                                  fontWeight: FontWeight.bold,
+                                  color: Colors.white)),
+                          const SizedBox(height: 8),
+                          FunButton(
+                            onPressed: () {
+                              Navigator.push(
+                                  context,
+                                  MaterialPageRoute(
+                                    builder: (context) =>
+                                        CreateTournamentInstance(
+                                            accountAddress:
+                                                widget.accountAddress),
+                                  ));
+                            },
+                            child: const Text('Create a New league'),
+                          ),
+                          const SizedBox(height: 24),
 
-                // Admins Section
-                if (widget.owner ==
-                    Felt.fromHexString(widget.accountAddress)) ...[
-                  Text('For Admins',
-                      style: TextStyle(
-                          fontSize: 20,
-                          fontWeight: FontWeight.bold,
-                          color: Color(0xFF5D4037))),
-                  const SizedBox(height: 8),
-                  FunButton(
-                    onPressed: () {
-                      Navigator.push(
-                          context,
-                          MaterialPageRoute(
-                            builder: (context) => CreateTournamentTemplate(),
-                          ));
-                    },
-                    child: const Text('Create a tournament template'),
-                  ),
-                  FunButton(
-                    onPressed: () {
-                      Navigator.push(
-                          context,
-                          MaterialPageRoute(
-                            builder: (context) => const EditTournamentScreen(),
-                          ));
-                    },
-                    child: const Text('Edit tournament results'),
-                  ),
-                  const SizedBox(height: 24),
-                ],
+                          // Admins Section
+                          if (widget.owner ==
+                              Felt.fromHexString(widget.accountAddress)) ...[
+                            Text('For Admins',
+                                style: TextStyle(
+                                    fontSize: 20,
+                                    fontWeight: FontWeight.bold,
+                                    color: Colors.white)),
+                            const SizedBox(height: 8),
+                            FunButton(
+                              onPressed: () {
+                                Navigator.push(
+                                    context,
+                                    MaterialPageRoute(
+                                      builder: (context) =>
+                                          CreateTournamentTemplate(),
+                                    ));
+                              },
+                              child: const Text('Create a tournament template'),
+                            ),
+                            FunButton(
+                              onPressed: () {
+                                Navigator.push(
+                                    context,
+                                    MaterialPageRoute(
+                                      builder: (context) =>
+                                          const EditTournamentScreen(),
+                                    ));
+                              },
+                              child: const Text('Edit tournament results'),
+                            ),
+                            const SizedBox(height: 24),
+                          ],
 
-                // Wallet Section
-                Text('Wallet',
-                    style: TextStyle(
-                        fontSize: 20,
-                        fontWeight: FontWeight.bold,
-                        color: Color(0xFF5D4037))),
-                const SizedBox(height: 8),
-                Column(
-                  children: [
-                    FunButton(
-                      onPressed: () {
-                        Navigator.push(
-                            context,
-                            MaterialPageRoute(
-                              builder: (context) => WithdrawScreen(
-                                  accountAddress: widget.accountAddress),
-                            ));
-                      },
-                      child: const Text('Check/Withdraw balance'),
-                    ),
-                    const SizedBox(height: 12),
-                    Opacity(
-                      opacity: 1,
-                      child: Image.asset(
-                        'lib/assets/icon_good2.jpg',
-                        width: 80,
-                        height: 80,
-                        fit: BoxFit.contain,
+                          // Wallet Section
+                          Text('Wallet',
+                              style: TextStyle(
+                                  fontSize: 20,
+                                  fontWeight: FontWeight.bold,
+                                  color: Colors.white)),
+                          const SizedBox(height: 8),
+                          Column(
+                            children: [
+                              FunButton(
+                                onPressed: () {
+                                  Navigator.push(
+                                      context,
+                                      MaterialPageRoute(
+                                        builder: (context) => WithdrawScreen(
+                                            accountAddress:
+                                                widget.accountAddress),
+                                      ));
+                                },
+                                child: const Text('Check/Withdraw balance'),
+                              ),
+                            ],
+                          ),
+                        ],
                       ),
                     ),
-                  ],
+                  ),
                 ),
               ],
             ),
           ),
-        ),
+        ],
       ),
     );
   }
