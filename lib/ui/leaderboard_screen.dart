@@ -93,6 +93,10 @@ class _LeaderboardScreenState extends State<LeaderboardScreen> {
                     children: [
                       ElevatedButton(
                         onPressed: _isCheckingPrize ? null : _checkPrize,
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: Colors.orange,
+                          foregroundColor: Colors.white,
+                        ),
                         child: _isCheckingPrize
                             ? const SizedBox(
                                 width: 20,
@@ -120,6 +124,10 @@ class _LeaderboardScreenState extends State<LeaderboardScreen> {
                             if (_prize!.toBigInt() > BigInt.zero)
                               ElevatedButton(
                                 onPressed: _isPayingPrize ? null : _payPrize,
+                                style: ElevatedButton.styleFrom(
+                                  backgroundColor: Colors.orange,
+                                  foregroundColor: Colors.white,
+                                ),
                                 child: _isPayingPrize
                                     ? const SizedBox(
                                         width: 20,

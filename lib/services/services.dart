@@ -109,34 +109,34 @@ Future<List<TournamentTemplate>> getTournamentTemplates() async {
             .add(TournamentTemplate.fromFelt(templateData, Felt.fromInt(i)));
       }
 
-      // If no templates were found or there was an error parsing, use mock data
-      if (templates.isEmpty) {
-        print("No templates found, using mock data");
-        templates = [
-          TournamentTemplate(
-            id: Felt.fromInt(0),
-            name: "World Cup 2022",
-            description: "FIFA World Cup tournament",
-            imageUrl: "https://example.com/worldcup.jpg",
-            entryFee: Uint256.fromBigInt(BigInt.from(1000000000000000000)),
-            prizeFirstPlace: Felt(BigInt.from(70)),
-            prizeSecondPlace: Felt(BigInt.from(20)),
-            prizeThirdPlace: Felt(BigInt.from(10)),
-            gamesCount: Felt.fromInt(64),
-          ),
-          TournamentTemplate(
-            id: Felt.fromInt(1),
-            name: "Euro 2024",
-            description: "European Championship tournament",
-            imageUrl: "https://example.com/euro.jpg",
-            entryFee: Uint256.fromBigInt(BigInt.from(1500000000000000000)),
-            prizeFirstPlace: Felt(BigInt.from(60)),
-            prizeSecondPlace: Felt(BigInt.from(30)),
-            prizeThirdPlace: Felt(BigInt.from(10)),
-            gamesCount: Felt.fromInt(51),
-          ),
-        ];
-      }
+      // // If no templates were found or there was an error parsing, use mock data
+      // if (templates.isEmpty) {
+      //   print("No templates found, using mock data");
+      //   templates = [
+      //     TournamentTemplate(
+      //       id: Felt.fromInt(0),
+      //       name: "World Cup 2022",
+      //       description: "FIFA World Cup tournament",
+      //       imageUrl: "https://example.com/worldcup.jpg",
+      //       entryFee: Uint256.fromBigInt(BigInt.from(1000000000000000000)),
+      //       prizeFirstPlace: Felt(BigInt.from(70)),
+      //       prizeSecondPlace: Felt(BigInt.from(20)),
+      //       prizeThirdPlace: Felt(BigInt.from(10)),
+      //       gamesCount: Felt.fromInt(64),
+      //     ),
+      //     TournamentTemplate(
+      //       id: Felt.fromInt(1),
+      //       name: "Euro 2024",
+      //       description: "European Championship tournament",
+      //       imageUrl: "https://example.com/euro.jpg",
+      //       entryFee: Uint256.fromBigInt(BigInt.from(1500000000000000000)),
+      //       prizeFirstPlace: Felt(BigInt.from(60)),
+      //       prizeSecondPlace: Felt(BigInt.from(30)),
+      //       prizeThirdPlace: Felt(BigInt.from(10)),
+      //       gamesCount: Felt.fromInt(51),
+      //     ),
+      //   ];
+      // }
 
       return templates;
     },

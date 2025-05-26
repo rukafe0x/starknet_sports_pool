@@ -110,7 +110,6 @@ class _EditTournamentScreenState extends State<EditTournamentScreen> {
     return Scaffold(
       appBar: AppBar(
         title: const Text('Edit Tournament'),
-        backgroundColor: const Color(0xFF6750A4),
       ),
       body: _isLoading
           ? const Center(child: CircularProgressIndicator())
@@ -196,7 +195,10 @@ class _EditTournamentScreenState extends State<EditTournamentScreen> {
                               decoration: const InputDecoration(
                                 border: OutlineInputBorder(),
                                 labelText: 'Game',
+                                filled: true,
+                                fillColor: Color(0xFFFFF3E0),
                               ),
+                              dropdownColor: Color(0xFFFFF3E0),
                             ),
                             if (_selectedGame != null) ...[
                               const SizedBox(height: 16),
@@ -248,15 +250,18 @@ class _EditTournamentScreenState extends State<EditTournamentScreen> {
                                 ],
                               ),
                               const SizedBox(height: 16),
-                              ElevatedButton(
-                                onPressed: _saveGameResult,
-                                style: ElevatedButton.styleFrom(
-                                  backgroundColor: const Color(0xFF6750A4),
-                                  foregroundColor: Colors.white,
-                                  padding:
-                                      const EdgeInsets.symmetric(vertical: 16),
+                              SizedBox(
+                                width: double.infinity,
+                                child: ElevatedButton(
+                                  onPressed: _saveGameResult,
+                                  style: ElevatedButton.styleFrom(
+                                    backgroundColor: Colors.orange,
+                                    foregroundColor: Colors.white,
+                                    padding: const EdgeInsets.symmetric(
+                                        vertical: 16),
+                                  ),
+                                  child: const Text('Save Result'),
                                 ),
-                                child: const Text('Save Result'),
                               ),
                             ],
                           ],

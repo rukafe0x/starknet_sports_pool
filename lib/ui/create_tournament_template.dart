@@ -98,6 +98,10 @@ class _CreateTournamentTemplateState extends State<CreateTournamentTemplate> {
                   });
                 }
               },
+              style: ElevatedButton.styleFrom(
+                backgroundColor: Colors.orange,
+                foregroundColor: Colors.white,
+              ),
               child: const Text('Show Image Preview'),
             ),
             if (_showImagePreview && _tournamentImage.isNotEmpty)
@@ -199,6 +203,10 @@ class _CreateTournamentTemplateState extends State<CreateTournamentTemplate> {
                       );
                     }
                   : null,
+              style: ElevatedButton.styleFrom(
+                backgroundColor: Colors.orange,
+                foregroundColor: Colors.white,
+              ),
               child: const Text('Create Tournament Template'),
             ),
           ],

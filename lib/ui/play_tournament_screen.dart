@@ -184,8 +184,7 @@ class _PlayTournamentScreenState extends State<PlayTournamentScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Play Tournament'),
-        backgroundColor: const Color(0xFF6750A4),
+        title: const Text('Play League'),
       ),
       body: _isLoading
           ? const Center(child: CircularProgressIndicator())
@@ -201,7 +200,7 @@ class _PlayTournamentScreenState extends State<PlayTournamentScreen> {
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           const Text(
-                            'Select Tournament',
+                            'Select League',
                             style: TextStyle(
                               fontSize: 18,
                               fontWeight: FontWeight.bold,
@@ -241,6 +240,34 @@ class _PlayTournamentScreenState extends State<PlayTournamentScreen> {
                       ),
                     ),
                   ),
+                  if (_selectedInstance != null &&
+                      (_selectedInstance!['image_url']?.isNotEmpty ?? false))
+                    Padding(
+                      padding: const EdgeInsets.only(bottom: 12.0),
+                      child: ClipRRect(
+                        borderRadius: BorderRadius.circular(12),
+                        child: Image.network(
+                          _selectedInstance!['image_url'],
+                          height: 160,
+                          width: double.infinity,
+                          fit: BoxFit.contain,
+                          errorBuilder: (context, error, stackTrace) =>
+                              Container(
+                            height: 160,
+                            color: Colors.grey[200],
+                            child: const Center(
+                                child: Icon(Icons.broken_image, size: 48)),
+                          ),
+                          loadingBuilder: (context, child, loadingProgress) {
+                            if (loadingProgress == null) return child;
+                            return SizedBox(
+                              height: 160,
+                              child: Center(child: CircularProgressIndicator()),
+                            );
+                          },
+                        ),
+                      ),
+                    ),
                   Expanded(
                     child: ListView.builder(
                       padding: const EdgeInsets.all(16),
@@ -316,7 +343,7 @@ class _PlayTournamentScreenState extends State<PlayTournamentScreen> {
                       onPressed:
                           _areAllGamesPredicted() ? _savePredictions : null,
                       style: ElevatedButton.styleFrom(
-                        backgroundColor: const Color(0xFF6750A4),
+                        backgroundColor: Colors.orange,
                         foregroundColor: Colors.white,
                         padding: const EdgeInsets.symmetric(vertical: 16),
                         minimumSize: const Size(double.infinity, 0),
@@ -338,14 +365,13 @@ class _PlayTournamentScreenState extends State<PlayTournamentScreen> {
     return ElevatedButton(
       onPressed: () => _togglePrediction(gameId, prediction),
       style: ElevatedButton.styleFrom(
-        backgroundColor:
-            isSelected ? const Color(0xFF6750A4) : Colors.grey[200],
+        backgroundColor: isSelected ? Colors.orange : Colors.grey[200],
         foregroundColor: isSelected ? Colors.white : Colors.black,
         padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
       ),
       child: Column(
         children: [
-          Icon(icon),
+          Icon(icon, color: isSelected ? Colors.white : Color(0xFFF78A05)),
           const SizedBox(height: 4),
           Text(label),
         ],

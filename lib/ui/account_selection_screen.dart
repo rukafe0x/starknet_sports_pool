@@ -272,7 +272,7 @@ class _AccountSelectionScreenState extends State<AccountSelectionScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Select Account'),
+        title: const Text('Starknet Sports Pool\nSelect Account'),
         actions: [
           IconButton(
             icon: const Icon(Icons.delete_forever),
@@ -345,6 +345,13 @@ class _AccountSelectionScreenState extends State<AccountSelectionScreen> {
                   child: Column(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
+                      Image.asset(
+                        'lib/assets/icon_good2.jpg',
+                        height: 150,
+                        width: 150,
+                        fit: BoxFit.contain,
+                      ),
+                      const SizedBox(height: 24),
                       const Text(
                         'No accounts found',
                         style: TextStyle(fontSize: 18),
@@ -352,29 +359,48 @@ class _AccountSelectionScreenState extends State<AccountSelectionScreen> {
                       const SizedBox(height: 16),
                       ElevatedButton(
                         onPressed: _createSponsoredAccount,
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: Colors.orange,
+                          foregroundColor: Colors.white,
+                        ),
                         child: const Text('Create New Account'),
                       ),
                     ],
                   ),
                 )
-              : ListView.builder(
-                  padding: const EdgeInsets.all(16),
-                  itemCount: _accounts.length,
-                  itemBuilder: (context, index) {
-                    final account = _accounts[index];
-                    return Card(
-                      margin: const EdgeInsets.only(bottom: 16),
-                      child: ListTile(
-                        title: Text(account['nickname'] ?? ''),
-                        subtitle: Text(
-                          'Address: ${account['address']?.substring(0, 10)}...',
-                          style: const TextStyle(fontSize: 12),
-                        ),
-                        trailing: const Icon(Icons.arrow_forward_ios),
-                        onTap: () => _selectAccount(account),
+              : Column(
+                  children: [
+                    Padding(
+                      padding: const EdgeInsets.all(16.0),
+                      child: Image.asset(
+                        'lib/assets/icon_good2.jpg',
+                        height: 150,
+                        width: 150,
+                        fit: BoxFit.contain,
                       ),
-                    );
-                  },
+                    ),
+                    Expanded(
+                      child: ListView.builder(
+                        padding: const EdgeInsets.all(16),
+                        itemCount: _accounts.length,
+                        itemBuilder: (context, index) {
+                          final account = _accounts[index];
+                          return Card(
+                            margin: const EdgeInsets.only(bottom: 16),
+                            child: ListTile(
+                              title: Text(account['nickname'] ?? ''),
+                              subtitle: Text(
+                                'Address: ${account['address']?.substring(0, 10)}...',
+                                style: const TextStyle(fontSize: 12),
+                              ),
+                              trailing: const Icon(Icons.arrow_forward_ios),
+                              onTap: () => _selectAccount(account),
+                            ),
+                          );
+                        },
+                      ),
+                    ),
+                  ],
                 ),
     );
   }

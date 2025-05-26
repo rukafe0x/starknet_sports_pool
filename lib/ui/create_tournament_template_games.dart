@@ -48,17 +48,22 @@ class _CreateTournamentTemplateGamesState
                 Expanded(
                   child: ElevatedButton(
                     onPressed: _addNewGame,
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: Colors.orange,
+                      foregroundColor: Colors.white,
+                    ),
                     child: Text('Add New Game'),
                   ),
                 ),
                 SizedBox(width: 16),
                 Expanded(
                   child: ElevatedButton(
-                    onPressed: _saveTournament,
-                    child: Text('Save Tournament'),
+                    onPressed: games.isNotEmpty ? _saveTournament : null,
                     style: ElevatedButton.styleFrom(
-                      backgroundColor: Colors.green,
+                      backgroundColor: Colors.orange,
+                      foregroundColor: Colors.white,
                     ),
+                    child: Text('Save Tournament'),
                   ),
                 ),
               ],

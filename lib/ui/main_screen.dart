@@ -13,12 +13,7 @@ import 'withdraw_screen.dart';
 class FunButton extends StatefulWidget {
   final VoidCallback onPressed;
   final Widget child;
-  final Color color;
-  const FunButton(
-      {required this.onPressed,
-      required this.child,
-      required this.color,
-      Key? key})
+  const FunButton({required this.onPressed, required this.child, Key? key})
       : super(key: key);
 
   @override
@@ -28,15 +23,6 @@ class FunButton extends StatefulWidget {
 class _FunButtonState extends State<FunButton>
     with SingleTickerProviderStateMixin {
   double _scale = 1.0;
-
-  Color getTextColor(Color background) {
-    // Si el fondo es verde claro o muy claro, usa verde oscuro para el texto
-    if (background.value == 0xFFC8E6C9 || background.value == 0xFFE8F5E9) {
-      return const Color(0xFF388E3C);
-    }
-    // Si no, usa blanco
-    return Colors.white;
-  }
 
   @override
   Widget build(BuildContext context) {
@@ -53,8 +39,8 @@ class _FunButtonState extends State<FunButton>
           width: double.infinity,
           child: ElevatedButton(
             style: ElevatedButton.styleFrom(
-              backgroundColor: widget.color,
-              foregroundColor: getTextColor(widget.color),
+              backgroundColor: Colors.orange,
+              foregroundColor: Colors.white,
               padding: const EdgeInsets.symmetric(vertical: 18),
               shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(16)),
@@ -91,13 +77,14 @@ class _MainScreenState extends State<MainScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: Color(0xFFFAF5F0), // Beige suave RGB(250, 245, 240)
       appBar: AppBar(
         title: const Text(
           'Starknet Sports Pool',
           style: TextStyle(color: Colors.white),
         ),
         centerTitle: true,
-        backgroundColor: Color(0xFF2A6B48),
+        backgroundColor: Color(0xFFF76300),
         bottom: PreferredSize(
           preferredSize: const Size.fromHeight(38),
           child: Padding(
@@ -145,119 +132,130 @@ class _MainScreenState extends State<MainScreen> {
           ),
         ),
       ),
-      body: SingleChildScrollView(
-        child: Padding(
-          padding: const EdgeInsets.all(24),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: [
-              // Players Section
-              Text('For Players',
-                  style: TextStyle(
-                      fontSize: 20,
-                      fontWeight: FontWeight.bold,
-                      color: Color(0xFF388E3C))),
-              const SizedBox(height: 8),
-              FunButton(
-                color: Color(0xFF81C784), // Verde medio
-                onPressed: () {
-                  Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                        builder: (context) => MyTournamentsScreen(
-                            userAddress: widget.accountAddress),
-                      ));
-                },
-                child: const Text('Check my results'),
-              ),
-              FunButton(
-                color: Color(0xFFC8E6C9), // Verde pastel
-                onPressed: () {
-                  Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                        builder: (context) => const PlayTournamentScreen(),
-                      ));
-                },
-                child: const Text('Play a League'),
-              ),
-              const SizedBox(height: 24),
-
-              // Managers Section
-              Text('For Managers',
-                  style: TextStyle(
-                      fontSize: 20,
-                      fontWeight: FontWeight.bold,
-                      color: Color(0xFF388E3C))),
-              const SizedBox(height: 8),
-              FunButton(
-                color: Color(0xFFE8F5E9), // Verde muy claro
-                onPressed: () {
-                  Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                        builder: (context) => CreateTournamentInstance(
-                            accountAddress: widget.accountAddress),
-                      ));
-                },
-                child: const Text('Create a New league'),
-              ),
-              const SizedBox(height: 24),
-
-              // Admins Section
-              if (widget.owner ==
-                  Felt.fromHexString(widget.accountAddress)) ...[
-                Text('For Admins',
+      body: Container(
+        color: Color(0xFFFAF5F0), // Beige suave RGB(250, 245, 240)
+        child: SingleChildScrollView(
+          child: Padding(
+            padding: const EdgeInsets.all(24),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                // Players Section
+                Text('For Players',
                     style: TextStyle(
                         fontSize: 20,
                         fontWeight: FontWeight.bold,
-                        color: Color(0xFF388E3C))),
+                        color: Color(0xFF5D4037))),
                 const SizedBox(height: 8),
                 FunButton(
-                  color: Color(0xFF388E3C), // Verde fuerte
                   onPressed: () {
                     Navigator.push(
                         context,
                         MaterialPageRoute(
-                          builder: (context) => CreateTournamentTemplate(),
+                          builder: (context) => const PlayTournamentScreen(),
                         ));
                   },
-                  child: const Text('Create a tournament template'),
+                  child: const Text('Play a League'),
                 ),
                 FunButton(
-                  color: Color(0xFF81C784), // Verde medio
                   onPressed: () {
                     Navigator.push(
                         context,
                         MaterialPageRoute(
-                          builder: (context) => const EditTournamentScreen(),
+                          builder: (context) => MyTournamentsScreen(
+                              userAddress: widget.accountAddress),
                         ));
                   },
-                  child: const Text('Edit tournament results'),
+                  child: const Text('Check my Results'),
                 ),
                 const SizedBox(height: 24),
-              ],
 
-              // Wallet Section
-              Text('Wallet',
-                  style: TextStyle(
-                      fontSize: 20,
-                      fontWeight: FontWeight.bold,
-                      color: Color(0xFF388E3C))),
-              const SizedBox(height: 8),
-              FunButton(
-                color: Color(0xFFC8E6C9), // Verde pastel
-                onPressed: () {
-                  Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                        builder: (context) => WithdrawScreen(
-                            accountAddress: widget.accountAddress),
-                      ));
-                },
-                child: const Text('Check/Withdraw balance'),
-              ),
-            ],
+                // Managers Section
+                Text('For Managers',
+                    style: TextStyle(
+                        fontSize: 20,
+                        fontWeight: FontWeight.bold,
+                        color: Color(0xFF5D4037))),
+                const SizedBox(height: 8),
+                FunButton(
+                  onPressed: () {
+                    Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => CreateTournamentInstance(
+                              accountAddress: widget.accountAddress),
+                        ));
+                  },
+                  child: const Text('Create a New league'),
+                ),
+                const SizedBox(height: 24),
+
+                // Admins Section
+                if (widget.owner ==
+                    Felt.fromHexString(widget.accountAddress)) ...[
+                  Text('For Admins',
+                      style: TextStyle(
+                          fontSize: 20,
+                          fontWeight: FontWeight.bold,
+                          color: Color(0xFF5D4037))),
+                  const SizedBox(height: 8),
+                  FunButton(
+                    onPressed: () {
+                      Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (context) => CreateTournamentTemplate(),
+                          ));
+                    },
+                    child: const Text('Create a tournament template'),
+                  ),
+                  FunButton(
+                    onPressed: () {
+                      Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (context) => const EditTournamentScreen(),
+                          ));
+                    },
+                    child: const Text('Edit tournament results'),
+                  ),
+                  const SizedBox(height: 24),
+                ],
+
+                // Wallet Section
+                Text('Wallet',
+                    style: TextStyle(
+                        fontSize: 20,
+                        fontWeight: FontWeight.bold,
+                        color: Color(0xFF5D4037))),
+                const SizedBox(height: 8),
+                Column(
+                  children: [
+                    FunButton(
+                      onPressed: () {
+                        Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (context) => WithdrawScreen(
+                                  accountAddress: widget.accountAddress),
+                            ));
+                      },
+                      child: const Text('Check/Withdraw balance'),
+                    ),
+                    const SizedBox(height: 12),
+                    Opacity(
+                      opacity: 1,
+                      child: Image.asset(
+                        'lib/assets/icon_good2.jpg',
+                        width: 80,
+                        height: 80,
+                        fit: BoxFit.contain,
+                      ),
+                    ),
+                  ],
+                ),
+              ],
+            ),
           ),
         ),
       ),

@@ -126,8 +126,7 @@ class _MyTournamentsScreenState extends State<MyTournamentsScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('My Tournaments'),
-        backgroundColor: const Color(0xFF6750A4),
+        title: const Text('My Leagues'),
       ),
       body: _isLoading
           ? const Center(child: CircularProgressIndicator())
@@ -143,7 +142,7 @@ class _MyTournamentsScreenState extends State<MyTournamentsScreen> {
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           const Text(
-                            'Select Tournament',
+                            'Select League',
                             style: TextStyle(
                               fontSize: 18,
                               fontWeight: FontWeight.bold,
@@ -165,7 +164,7 @@ class _MyTournamentsScreenState extends State<MyTournamentsScreen> {
                             },
                             decoration: const InputDecoration(
                               border: OutlineInputBorder(),
-                              labelText: 'Tournament',
+                              labelText: 'League',
                             ),
                           ),
                         ],
@@ -173,6 +172,38 @@ class _MyTournamentsScreenState extends State<MyTournamentsScreen> {
                     ),
                   ),
                   const SizedBox(height: 16),
+                  if (_selectedInstance != null &&
+                      (_selectedInstance!['image_url']?.isNotEmpty ?? false))
+                    Padding(
+                      padding: const EdgeInsets.only(bottom: 12.0),
+                      child: ClipRRect(
+                        borderRadius: BorderRadius.circular(12),
+                        child: Container(
+                          width: double.infinity,
+                          height: 160,
+                          color: Colors.grey[200],
+                          child: Image.network(
+                            _selectedInstance!['image_url'],
+                            fit: BoxFit.contain,
+                            errorBuilder: (context, error, stackTrace) =>
+                                Container(
+                              height: 160,
+                              color: Colors.grey[200],
+                              child: const Center(
+                                  child: Icon(Icons.broken_image, size: 48)),
+                            ),
+                            loadingBuilder: (context, child, loadingProgress) {
+                              if (loadingProgress == null) return child;
+                              return SizedBox(
+                                height: 160,
+                                child:
+                                    Center(child: CircularProgressIndicator()),
+                              );
+                            },
+                          ),
+                        ),
+                      ),
+                    ),
                   if (_selectedInstance != null)
                     Padding(
                       padding: const EdgeInsets.symmetric(vertical: 8.0),
@@ -188,6 +219,10 @@ class _MyTournamentsScreenState extends State<MyTournamentsScreen> {
                             ),
                           );
                         },
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: Colors.orange,
+                          foregroundColor: Colors.white,
+                        ),
                         child: const Text('View Leaderboard'),
                       ),
                     ),
@@ -200,7 +235,7 @@ class _MyTournamentsScreenState extends State<MyTournamentsScreen> {
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
                               Text(
-                                '${_selectedInstance!['name']} Games',
+                                'My Predictions',
                                 style: const TextStyle(
                                   fontSize: 18,
                                   fontWeight: FontWeight.bold,

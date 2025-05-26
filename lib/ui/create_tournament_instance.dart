@@ -179,41 +179,27 @@ class _CreateTournamentInstanceState extends State<CreateTournamentInstance> {
                               children: [
                                 ClipRRect(
                                   borderRadius: BorderRadius.circular(8),
-                                  child: Image.network(
-                                    _selectedTemplate!.imageUrl,
-                                    height: 180,
+                                  child: Container(
                                     width: double.infinity,
-                                    fit: BoxFit.cover,
-                                    loadingBuilder:
-                                        (context, child, loadingProgress) {
-                                      if (loadingProgress == null) return child;
-                                      return SizedBox(
-                                        height: 180,
-                                        child: Center(
-                                          child: CircularProgressIndicator(
-                                            value: loadingProgress
-                                                        .expectedTotalBytes !=
-                                                    null
-                                                ? loadingProgress
-                                                        .cumulativeBytesLoaded /
-                                                    (loadingProgress
-                                                            .expectedTotalBytes ??
-                                                        1)
-                                                : null,
-                                          ),
-                                        ),
-                                      );
-                                    },
-                                    errorBuilder: (context, error, stackTrace) {
-                                      return Container(
-                                        height: 180,
-                                        color: Colors.grey.shade300,
-                                        child: const Center(
-                                          child: Icon(Icons.error_outline,
-                                              color: Colors.grey),
-                                        ),
-                                      );
-                                    },
+                                    height: 180,
+                                    color: Colors.grey.shade200,
+                                    child: Image.network(
+                                      _selectedTemplate!.imageUrl,
+                                      fit: BoxFit.contain,
+                                      loadingBuilder:
+                                          (context, child, loadingProgress) {
+                                        if (loadingProgress == null)
+                                          return child;
+                                        return Center(
+                                            child: CircularProgressIndicator());
+                                      },
+                                      errorBuilder:
+                                          (context, error, stackTrace) {
+                                        return const Center(
+                                            child: Icon(Icons.error_outline,
+                                                color: Colors.grey, size: 48));
+                                      },
+                                    ),
                                   ),
                                 ),
                                 const SizedBox(height: 16),
@@ -400,6 +386,8 @@ class _CreateTournamentInstanceState extends State<CreateTournamentInstance> {
                       style: ElevatedButton.styleFrom(
                         padding: const EdgeInsets.symmetric(vertical: 16),
                         minimumSize: const Size(double.infinity, 50),
+                        backgroundColor: Colors.orange,
+                        foregroundColor: Colors.white,
                       ),
                       child: const Text(
                         'Create League',

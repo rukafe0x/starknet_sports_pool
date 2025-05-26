@@ -139,6 +139,10 @@ class _WithdrawScreenState extends State<WithdrawScreen> {
                   const SizedBox(height: 24),
                   ElevatedButton(
                     onPressed: _withdraw,
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: Colors.orange,
+                      foregroundColor: Colors.white,
+                    ),
                     child: const Text('Withdraw'),
                   ),
                 ],
