@@ -595,12 +595,15 @@ Future<void> withdrawEth(String from, String to, Uint256 amount) async {
 }
 
 // Check prize for a user in a tournament instance
-Future<Uint256> checkPrice(int instanceId) async {
+Future<Uint256> checkPrize(int instanceId) async {
   final result = await provider.call(
     request: FunctionCall(
       contractAddress: Felt.fromHexString(contractAddress),
       entryPointSelector: getSelectorByName("check_prize"),
-      calldata: [Felt.fromInt(instanceId)],
+      calldata: [
+        Felt.fromInt(instanceId),
+        Felt.fromHexString(await getSecretAccountAddress())
+      ],
     ),
     blockId: BlockId.latest,
   );
@@ -611,13 +614,13 @@ Future<Uint256> checkPrice(int instanceId) async {
 }
 
 // Pay prize to a user in a tournament instance
-Future<void> claimPrice(int instanceId) async {
+Future<void> claimPrize(int instanceId) async {
   final account = await getSignerAccount();
 
   final response = await account.execute(functionCalls: [
     FunctionCall(
       contractAddress: Felt.fromHexString(contractAddress),
-      entryPointSelector: getSelectorByName("pay_prize"),
+      entryPointSelector: getSelectorByName("claim_prize"),
       calldata: [Felt.fromInt(instanceId)],
     ),
   ]);

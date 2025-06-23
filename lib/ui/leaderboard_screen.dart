@@ -34,7 +34,7 @@ class _LeaderboardScreenState extends State<LeaderboardScreen> {
     setState(() => _isCheckingPrize = true);
     try {
       await _loadUserAddress();
-      final prize = await checkPrice(widget.instanceId);
+      final prize = await checkPrize(widget.instanceId);
       setState(() {
         _prize = prize;
         _isCheckingPrize = false;
@@ -50,7 +50,7 @@ class _LeaderboardScreenState extends State<LeaderboardScreen> {
   Future<void> _payPrize() async {
     setState(() => _isPayingPrize = true);
     try {
-      final txHash = await claimPrice(widget.instanceId);
+      final txHash = await claimPrize(widget.instanceId);
       setState(() => _isPayingPrize = false);
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('Prize claimed!')),
