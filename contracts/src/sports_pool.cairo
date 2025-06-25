@@ -32,6 +32,7 @@ mod SportsPool {
         _user_instances_predictions_list_count: Map<ContractAddress, u8>, // (user address, predictions count)
         _user_instances_user_list: Map <u8, Map<u8, ContractAddress>>, // (tournament instance id, index, user address)
         _user_instances_user_list_count: Map<u8, u8>, // (tournament instance id, user count)
+        _user_nicknames: Map<ContractAddress, felt252>, // (user address, nickname)
     }
 
     // Struct to store tournaments games.
@@ -92,6 +93,7 @@ mod SportsPool {
     struct UserPoints {
         user: ContractAddress,
         points: u8,
+        nickname: felt252,
     }
 
     // #[event]
@@ -237,7 +239,7 @@ mod SportsPool {
         }
 
         #[external(v0)]
-        fn save_user_instance_prediction(ref self: ContractState, tournament_instance_id: u8, predictions: Array<u8>) {
+        fn save_user_instance_prediction(ref self: ContractState, tournament_instance_id: u8, nickname: felt252, predictions: Array<u8>) {
             let user_address = get_caller_address();
             
             // Get the entry fee from the tournament instance
@@ -268,6 +270,10 @@ mod SportsPool {
             let mut user_instances_predictions_list = self._user_instances_predictions_list.entry(user_address);
             user_instances_predictions_list.entry(user_instance_index).write(tournament_instance_id);
             self._user_instances_predictions_list_count.entry(user_address).write(user_instance_index + 1);
+
+            // set the nickname of the user
+            let mut user_nicknames = self._user_nicknames.entry(user_address);
+            user_nicknames.write(nickname);
         }
 
         #[external(v0)]
@@ -331,7 +337,8 @@ mod SportsPool {
                     }
                     points = points + result;
                 };
-                leaderboard.append(UserPoints { user: user_address, points: points });
+                let nickname = self._user_nicknames.entry(user_address).read();
+                leaderboard.append(UserPoints { user: user_address, points: points, nickname: nickname });
             };
             leaderboard
         }
@@ -342,9 +349,9 @@ mod SportsPool {
             // Initialize our top 3 leaders.
             // We'll use individual variables to simulate a small sorted list.
             // Initialize with default values (0 points, 0 user)
-            let mut leader1 = UserPoints { user: contract_address_const::<0x0000000000000000000000000000000000000000000000000000000000000000>(), points: 0 }; // Will hold the 1st leader
-            let mut leader2 = UserPoints { user: contract_address_const::<0x0000000000000000000000000000000000000000000000000000000000000000>(), points: 0 }; // Will hold the 2nd leader
-            let mut leader3 = UserPoints { user: contract_address_const::<0x0000000000000000000000000000000000000000000000000000000000000000>(), points: 0 }; // Will hold the 3rd leader
+            let mut leader1 = UserPoints { user: contract_address_const::<0x0000000000000000000000000000000000000000000000000000000000000000>(), points: 0, nickname: 0 }; // Will hold the 1st leader
+            let mut leader2 = UserPoints { user: contract_address_const::<0x0000000000000000000000000000000000000000000000000000000000000000>(), points: 0, nickname: 0 }; // Will hold the 2nd leader
+            let mut leader3 = UserPoints { user: contract_address_const::<0x0000000000000000000000000000000000000000000000000000000000000000>(), points: 0, nickname: 0 }; // Will hold the 3rd leader
 
             let mut i = 0;
             loop {

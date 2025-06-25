@@ -156,8 +156,18 @@ class _PlayTournamentScreenState extends State<PlayTournamentScreen> {
         };
       }).toList();
 
+      // Get user's nickname
+      final userAddress = await getSecretAccountAddress();
+      final userNickname = await getAccountNickname(userAddress);
+
+      // Convert nickname to Felt (if null or empty, use a default value)
+      final nicknameFelt = userNickname != null && userNickname.isNotEmpty
+          ? Felt.fromString(userNickname)
+          : Felt.zero;
+
       final txHash = await saveUserInstancePrediction(
         _selectedInstance!['instance_id'].toInt(),
+        nicknameFelt,
         predictions,
       );
 

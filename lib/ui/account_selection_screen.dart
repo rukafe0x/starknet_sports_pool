@@ -339,7 +339,7 @@ class _AccountSelectionScreenState extends State<AccountSelectionScreen> {
         ),
         child: _isLoading
             ? const Center(child: CircularProgressIndicator())
-            : _accounts.length < 2
+            : _accounts.length < 0
                 ? Center(
                     child: Column(
                       mainAxisAlignment: MainAxisAlignment.center,

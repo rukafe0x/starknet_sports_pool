@@ -25,6 +25,33 @@ Future<String> getSecretAccountPrivateKey() async {
   return data['privateKey'] ?? '';
 }
 
+Future<String?> getAccountNickname(String address) async {
+  try {
+    // Get all stored keys
+    final allKeys = await _storage.readAll();
+
+    // Search for the account with matching address
+    for (var key in allKeys.keys) {
+      if (key.startsWith('account_')) {
+        final accountData = jsonDecode(allKeys[key]!);
+        if (accountData['address'] == address) {
+          return accountData['nickname'];
+        }
+      }
+    }
+
+    // Check if it's the hardcoded account 1
+    final env = dotenv.env;
+    if (env['ACCOUNT1_ADDRESS'] == address) {
+      return env['ACCOUNT1_NICKNAME'] ?? 'Admin';
+    }
+
+    return null;
+  } catch (e) {
+    return null;
+  }
+}
+
 final secretAccountAddress = getSecretAccountAddress();
 final secretAccountPrivateKey = getSecretAccountPrivateKey();
 
@@ -169,6 +196,9 @@ Future<String> createTournamentInstance(
         prizeFirstPlace,
         prizeSecondPlace,
         prizeThirdPlace,
+        Felt.fromInt(0), // prize_first_place_claimed: false
+        Felt.fromInt(0), // prize_second_place_claimed: false
+        Felt.fromInt(0), // prize_third_place_claimed: false
       ],
     ),
   ]);
@@ -349,11 +379,12 @@ Future<List<Map<String, dynamic>>> getTournamentInstances() async {
   );
 }
 
-Future<String> saveUserInstancePrediction(
-    int instanceId, List<Map<String, dynamic>> predictions) async {
+Future<String> saveUserInstancePrediction(int instanceId, Felt nickname,
+    List<Map<String, dynamic>> predictions) async {
   final account = await getSignerAccount();
   List<Felt> calldata = [];
   calldata.add(Felt.fromInt(instanceId));
+  calldata.add(nickname);
   calldata.add(Felt.fromInt(predictions.length));
   for (var prediction in predictions) {
     calldata.add(Felt.fromInt(prediction['prediction']));
@@ -423,8 +454,9 @@ Future<List<Map<String, dynamic>>> getInstanceLeaderboard(
 
       for (var i = 0; i < arrayLength; i++) {
         leaderboard.add({
-          'address': result[i * 2 + 1].toHexString(),
-          'points': result[i * 2 + 2].toInt(),
+          'address': result[i * 3 + 1].toHexString(),
+          'nickname': feltToAsciiString(result[i * 3 + 2]),
+          'points': result[i * 3 + 3].toInt(),
         });
       }
 

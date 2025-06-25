@@ -154,3 +154,8 @@ BigInt parseTokenAmount(String value, {int decimals = 18}) {
       fraction.padRight(decimals, '0').substring(0, decimals);
   return BigInt.parse(whole + paddedFraction);
 }
+
+String formatAddressDisplay(String address) {
+  if (address.length <= 8) return address;
+  return '${address.substring(0, 6)}...${address.substring(address.length - 4)}';
+}

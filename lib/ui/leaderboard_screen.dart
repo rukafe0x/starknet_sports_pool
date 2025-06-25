@@ -149,9 +149,20 @@ class _LeaderboardScreenState extends State<LeaderboardScreen> {
                     separatorBuilder: (_, __) => const Divider(),
                     itemBuilder: (context, index) {
                       final entry = _leaderboard[index];
+                      final nickname = entry['nickname'] ?? '';
+                      final address = entry['address'] ?? '';
+                      final formattedAddress = formatAddressDisplay(address);
+
+                      String displayName;
+                      if (nickname.isNotEmpty && nickname != '0') {
+                        displayName = '$nickname ($formattedAddress)';
+                      } else {
+                        displayName = formattedAddress;
+                      }
+
                       return ListTile(
                         leading: Text('#${index + 1}'),
-                        title: Text(entry['address'] ?? ''),
+                        title: Text(displayName),
                         trailing: Text('${entry['points']} pts'),
                       );
                     },
