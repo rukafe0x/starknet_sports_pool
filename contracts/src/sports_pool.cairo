@@ -482,19 +482,7 @@ mod SportsPool {
         }
 
         #[external(v0)]
-        fn get_instance_leaderboard(self: @ContractState, tournament_instance_id: u8) -> Array<(ContractAddress, u8)> {
-            let leaderboard = self._create_leaderboard(tournament_instance_id);
-            let mut result = ArrayTrait::new();
-            for i in 0..leaderboard.len() {
-                let user_points = *leaderboard.at(i);
-                result.append((user_points.user, user_points.points));
-            };
-            result
-        }
-
-        // For debugging purposes
-        #[external(v0)]
-        fn get_leaderboard(self: @ContractState, tournament_instance_id: u8) -> Array<UserPoints> {
+        fn get_instance_leaderboard(self: @ContractState, tournament_instance_id: u8) -> Array<UserPoints> {
             self._create_leaderboard(tournament_instance_id)
         }
 
