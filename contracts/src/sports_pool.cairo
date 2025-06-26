@@ -96,6 +96,21 @@ mod SportsPool {
         nickname: felt252,
     }
 
+    // Struct to return leadearboard status.
+    #[derive(Drop, Serde, starknet::Store)]
+    struct leaderboard_status {
+        is_finished: bool,
+        leader1: ContractAddress,
+        leader2: ContractAddress,
+        leader3: ContractAddress,
+        prize1_claimed: bool,
+        prize2_claimed: bool,
+        prize3_claimed: bool,
+        final_prize1: u256,
+        final_prize2: u256,
+        final_prize3: u256,
+    }
+
     // #[event]
     // #[derive(Drop, PartialEq, starknet::Event)]
     // pub enum Event {
@@ -343,7 +358,7 @@ mod SportsPool {
             leaderboard
         }
 
-        fn _get_top_three_leaders(self: @ContractState, leaderboard: Array<UserPoints>) -> (UserPoints, UserPoints, UserPoints) {
+        fn _get_top_three_leaders(self: @ContractState, leaderboard: @Array<UserPoints>) -> (UserPoints, UserPoints, UserPoints) {
             let n = leaderboard.len();
 
             // Initialize our top 3 leaders.
@@ -405,7 +420,7 @@ mod SportsPool {
         #[external(v0)]
         fn claim_prize(ref self: ContractState, tournament_instance_id: u8) {
             let leaderboard = self._create_leaderboard(tournament_instance_id);
-            let (leader1, leader2, leader3) = self._get_top_three_leaders(leaderboard);
+            let (leader1, leader2, leader3) = self._get_top_three_leaders(@leaderboard);
 
             // if msg sender is in top 3, transfer the prize of the tournament instance to the msg sender
             let msg_sender = get_caller_address();
@@ -449,7 +464,7 @@ mod SportsPool {
         #[external(v0)]
         fn check_prize(self: @ContractState, tournament_instance_id: u8, user_address: ContractAddress) -> u256 {
             let leaderboard = self._create_leaderboard(tournament_instance_id);
-            let (leader1, leader2, leader3) = self._get_top_three_leaders(leaderboard);
+            let (leader1, leader2, leader3) = self._get_top_three_leaders(@leaderboard);
             // get the prize of the tournament instance
             // the prize is the prize_N_place as a porcentage of the total particpants * entry fee
             let entry_fee = self._tournament_instance.entry(tournament_instance_id).entry_fee.read();
@@ -482,15 +497,56 @@ mod SportsPool {
         }
 
         #[external(v0)]
-        fn get_instance_leaderboard(self: @ContractState, tournament_instance_id: u8) -> Array<UserPoints> {
-            self._create_leaderboard(tournament_instance_id)
+        fn get_instance_leaderboard(self: @ContractState, tournament_instance_id: u8) -> (leaderboard_status, Array<UserPoints>) {
+            // check if the tournament instance games are all played
+            let games = self._tournament_template_games.entry(self._tournament_instance.entry(tournament_instance_id).tournament_template_id.read());
+            let mut finished = true;
+            for i in 0..self._tournament_template_games_count.entry(self._tournament_instance.entry(tournament_instance_id).tournament_template_id.read()).read() {
+                if !games.entry(i).played.read() {
+                    finished = false;
+                }
+            };
+
+            // get top 3 leaders
+            let leaderboard = self._create_leaderboard(tournament_instance_id);
+            let (leader1, leader2, leader3) = self._get_top_three_leaders(@leaderboard);
+
+            // get the prize of the tournament instance
+            // the prize is the prize_N_place as a porcentage of the total particpants * entry fee
+            let entry_fee = self._tournament_instance.entry(tournament_instance_id).entry_fee.read();
+            let total_participants = self._user_instances_user_list_count.entry(tournament_instance_id).read();
+            // Prizes:
+            let prize1 = self._tournament_instance.entry(tournament_instance_id).prize_first_place.read().into();
+            let prize2 = self._tournament_instance.entry(tournament_instance_id).prize_second_place.read().into();
+            let prize3 = self._tournament_instance.entry(tournament_instance_id).prize_third_place.read().into();
+            let prize1_claimed = self._tournament_instance.entry(tournament_instance_id).prize_first_place_claimed.read();
+            let prize2_claimed = self._tournament_instance.entry(tournament_instance_id).prize_second_place_claimed.read();
+            let prize3_claimed = self._tournament_instance.entry(tournament_instance_id).prize_third_place_claimed.read();
+            
+            let final_prize1 = (entry_fee * total_participants.into()) * prize1 / 100;
+            let final_prize2 = (entry_fee * total_participants.into()) * prize2 / 100;
+            let final_prize3 = (entry_fee * total_participants.into()) * prize3 / 100;
+            
+            let leaderboard_status = leaderboard_status {
+                is_finished: finished,
+                leader1: leader1.user,
+                leader2: leader2.user,
+                leader3: leader3.user,
+                prize1_claimed: prize1_claimed,
+                prize2_claimed: prize2_claimed,
+                prize3_claimed: prize3_claimed,
+                final_prize1: final_prize1,
+                final_prize2: final_prize2,
+                final_prize3: final_prize3,
+            };
+            (leaderboard_status, leaderboard)
         }
 
         // For debugging purposes
         #[external(v0)]
         fn get_top_three_leaders(self: @ContractState, tournament_instance_id: u8) -> (UserPoints, UserPoints, UserPoints) {
             let leaderboard = self._create_leaderboard(tournament_instance_id);
-            self._get_top_three_leaders(leaderboard)
+            self._get_top_three_leaders(@leaderboard)
         }
     }
 }

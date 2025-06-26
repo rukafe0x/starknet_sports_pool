@@ -354,22 +354,22 @@ Future<List<Map<String, dynamic>>> getTournamentInstances() async {
 
       for (var i = 0; i < arrayLength; i++) {
         final Map<String, dynamic> instanceData = {
-          'instance_id': result[i * 10 + 1],
-          'tournament_template_id': result[i * 10 + 2],
-          'name': result[i * 10 + 3] != Felt.fromInt(0)
-              ? feltToAsciiString(result[i * 10 + 3])
+          'instance_id': result[i * 13 + 1],
+          'tournament_template_id': result[i * 13 + 2],
+          'name': result[i * 13 + 3] != Felt.fromInt(0)
+              ? feltToAsciiString(result[i * 13 + 3])
               : '_',
-          'description': result[i * 10 + 4] != Felt.fromInt(0)
-              ? feltToAsciiString(result[i * 10 + 4])
+          'description': result[i * 13 + 4] != Felt.fromInt(0)
+              ? feltToAsciiString(result[i * 13 + 4])
               : '_',
-          'image_url': result[i * 10 + 5] != Felt.fromInt(0)
-              ? feltToAsciiString(result[i * 10 + 5])
+          'image_url': result[i * 13 + 5] != Felt.fromInt(0)
+              ? feltToAsciiString(result[i * 13 + 5])
               : '_',
           'entry_fee':
-              Uint256.fromFeltList([result[i * 10 + 6], result[i * 10 + 7]]),
-          'prize_first_place': result[i * 10 + 8],
-          'prize_second_place': result[i * 10 + 9],
-          'prize_third_place': result[i * 10 + 10],
+              Uint256.fromFeltList([result[i * 13 + 6], result[i * 13 + 7]]),
+          'prize_first_place': result[i * 13 + 8],
+          'prize_second_place': result[i * 13 + 9],
+          'prize_third_place': result[i * 13 + 10],
         };
         instances.add(instanceData);
       }
@@ -449,19 +449,33 @@ Future<List<Map<String, dynamic>>> getInstanceLeaderboard(
 
   return result.when(
     result: (result) {
+      // Before extract leadearboard, extract leaderboard_status struct as defined in the contract
       List<Map<String, dynamic>> leaderboard = [];
-      final arrayLength = result[0].toInt();
+      leaderboard.add({
+        'is_finished': result[0].toInt() == 1,
+        'leader1': '0x${result[1].toHexString().substring(2).padLeft(64, '0')}',
+        'leader2': '0x${result[2].toHexString().substring(2).padLeft(64, '0')}',
+        'leader3': '0x${result[3].toHexString().substring(2).padLeft(64, '0')}',
+        'prize1_claimed': result[4].toInt() == 1,
+        'prize2_claimed': result[5].toInt() == 1,
+        'prize3_claimed': result[6].toInt() == 1,
+        'final_prize1': Uint256.fromFeltList([result[7], result[8]]),
+        'final_prize2': Uint256.fromFeltList([result[9], result[10]]),
+        'final_prize3': Uint256.fromFeltList([result[11], result[12]]),
+      });
 
+      // Add sorted elements by points in descending order
+      List<Map<String, dynamic>> leaderboardSorted = [];
+      final arrayLength = result[13].toInt();
       for (var i = 0; i < arrayLength; i++) {
-        leaderboard.add({
-          'address': result[i * 3 + 1].toHexString(),
-          'nickname': feltToAsciiString(result[i * 3 + 2]),
-          'points': result[i * 3 + 3].toInt(),
+        leaderboardSorted.add({
+          'address': result[i * 3 + 14].toHexString(),
+          'points': result[i * 3 + 15].toInt(),
+          'nickname': feltToAsciiString(result[i * 3 + 16]),
         });
       }
-
-      // Sort by points in descending order
-      leaderboard.sort((a, b) => b['points'].compareTo(a['points']));
+      leaderboardSorted.sort((a, b) => b['points'].compareTo(a['points']));
+      leaderboard.addAll(leaderboardSorted);
       return leaderboard;
     },
     error: (error) => throw Exception("Failed to get leaderboard"),
@@ -623,25 +637,6 @@ Future<void> withdrawEth(String from, String to, Uint256 amount) async {
   await waitForAcceptance(
     transactionHash: trx,
     provider: provider,
-  );
-}
-
-// Check prize for a user in a tournament instance
-Future<Uint256> checkPrize(int instanceId) async {
-  final result = await provider.call(
-    request: FunctionCall(
-      contractAddress: Felt.fromHexString(contractAddress),
-      entryPointSelector: getSelectorByName("check_prize"),
-      calldata: [
-        Felt.fromInt(instanceId),
-        Felt.fromHexString(await getSecretAccountAddress())
-      ],
-    ),
-    blockId: BlockId.latest,
-  );
-  return result.when(
-    result: (result) => Uint256.fromFeltList([result[0], result[1]]),
-    error: (error) => throw Exception("Failed to check prize"),
   );
 }
 
