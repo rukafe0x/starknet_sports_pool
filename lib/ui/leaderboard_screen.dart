@@ -31,6 +31,10 @@ class _LeaderboardScreenState extends State<LeaderboardScreen> {
 
   Future<void> _loadUserAddress() async {
     _userAddress = await getSecretAccountAddress();
+    // convert after 0x and pad with 64 zeros left
+    if (_userAddress != null && _userAddress!.startsWith('0x')) {
+      _userAddress = '0x${_userAddress!.substring(2).padLeft(64, '0')}';
+    }
   }
 
   Future<void> _checkUserPosition() async {

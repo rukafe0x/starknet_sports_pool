@@ -56,12 +56,12 @@ class _AccountSelectionScreenState extends State<AccountSelectionScreen> {
       }
 
       // Add hardcoded account 1
-      final account1 = {
-        'nickname': dotenv.env['ACCOUNT1_NICKNAME'] ?? 'Admin',
-        'privateKey': dotenv.env['ACCOUNT1_PRIVATE_KEY'] ?? '',
-        'address': dotenv.env['ACCOUNT1_ADDRESS'] ?? '',
-      };
-      accounts.add(account1);
+      // final account1 = {
+      //   'nickname': dotenv.env['ACCOUNT1_NICKNAME'] ?? 'Admin',
+      //   'privateKey': dotenv.env['ACCOUNT1_PRIVATE_KEY'] ?? '',
+      //   'address': dotenv.env['ACCOUNT1_ADDRESS'] ?? '',
+      // };
+      // accounts.add(account1);
 
       if (!mounted) return;
       setState(() {
@@ -339,7 +339,7 @@ class _AccountSelectionScreenState extends State<AccountSelectionScreen> {
         ),
         child: _isLoading
             ? const Center(child: CircularProgressIndicator())
-            : _accounts.length < 0
+            : _accounts.length < 1
                 ? Center(
                     child: Column(
                       mainAxisAlignment: MainAxisAlignment.center,
